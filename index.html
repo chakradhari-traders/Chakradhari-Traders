@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- FORCED DESKTOP MODE (Auto Desktop View on Mobile) Removed, Made Fully Responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chakradhari Traders - ERP System</title>
+    
+    <!-- ADDED: Chart.js for Business Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root { 
             --primary: #d32f2f; 
@@ -87,7 +90,6 @@
         .works-section-title h3 { font-size: 1.4rem; color: #fff; font-weight: 700; word-break: break-word; }
         
         .work-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #334155; padding: 18px; margin-bottom: 15px; position: relative; overflow: hidden; }
-        /* FIXED: Header padding to accommodate row buttons */
         .work-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding-right: 180px;}
         .work-header h4 { font-size: 1.15rem; color: #fff; font-weight: 700; word-break: break-word; }
         .work-header .category-badge { font-size: 0.78rem; color: #94a3b8; }
@@ -100,7 +102,6 @@
         .amt-box.received p { color: #22c55e; }
         .amt-box.pending p { color: #ef4444; }
         
-        /* FIXED: Buttons now in a horizontal line at the top */
         .work-item-actions { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: row; gap: 6px; }
         .work-btn { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-weight: bold; width: auto;}
         .work-btn:hover { background: #475569; }
@@ -225,13 +226,41 @@
 
         <!-- ERP KHATA BOOK SECTION -->
         <div id="khataSection" style="display: none;">
+            
+            <!-- NEW DASHBOARD & CHART SECTION -->
+            <div id="erpDashboard" style="margin-bottom: 25px; padding: 20px; background: var(--card-bg); border-radius: 14px; border: 1px solid #334155; display: none;">
+                <h3 style="color:#fff; margin-bottom: 15px;">📈 Business Dashboard</h3>
+                <div class="banner-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 20px;">
+                    <div class="banner-stat-card" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #16a34a;">
+                        <p style="color: #4ade80;">Total Income</p>
+                        <h3 id="dashIncome">₹0</h3>
+                    </div>
+                    <div class="banner-stat-card" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #dc2626;">
+                        <p style="color: #f87171;">Total Expense</p>
+                        <h3 id="dashExpense">₹0</h3>
+                    </div>
+                    <div class="banner-stat-card" style="background: rgba(59, 130, 246, 0.15); border: 1px solid #2563eb;">
+                        <p style="color: #60a5fa;">Bazar Me Udhari</p>
+                        <h3 id="dashUdhari">₹0</h3>
+                    </div>
+                    <div class="banner-stat-card" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #d97706;">
+                        <p style="color: #fbbf24;">Cash Profit</p>
+                        <h3 id="dashProfit">₹0</h3>
+                    </div>
+                </div>
+                <!-- GRAPH CANVAS -->
+                <div style="background: var(--card-inner); padding: 15px; border-radius: 12px; border: 1px solid #475569; position: relative; height: 250px; width: 100%;">
+                    <canvas id="businessChart"></canvas>
+                </div>
+            </div>
+
             <!-- MASTER CARDS LIST VIEW -->
             <div id="ledgerGridView">
                 <div class="erp-top-bar">
                     <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">📋 Saved ERP Ledger Accounts</h3>
                     
-                    <!-- NEW SEARCH BAR ADDED HERE -->
-                    <input type="text" id="searchName" placeholder="🔍 Grahak/Supplier ka naam khojein..." onkeyup="loadLedgerGridUI()" style="flex-grow: 1; margin: 0; min-width: 200px; padding: 10px; border-radius: 8px; background: var(--card-inner); color: white; border: 1px solid #475569;">
+                    <!-- SEARCH BY NAME OR PHONE -->
+                    <input type="text" id="searchName" placeholder="🔍 Naam ya Number se khojein..." onkeyup="loadLedgerGridUI()" style="flex-grow: 1; margin: 0; min-width: 200px; padding: 10px; border-radius: 8px; background: var(--card-inner); color: white; border: 1px solid #475569;">
                     
                     <select id="filterType" onchange="loadLedgerGridUI()" style="width: auto; margin: 0;">
                         <option value="all">🔍 All (Sabhi Dekho)</option>
@@ -258,7 +287,6 @@
                     <div class="subtitle">Outstanding</div>
                     <div class="banner-stats-grid">
                         <div class="banner-stat-card"><h3 id="detailBusinessAmt">₹0</h3><p>Business</p></div>
-                        <!-- ID added here to change Received to Paid dynamically -->
                         <div class="banner-stat-card"><h3 id="detailReceivedAmt">₹0</h3><p id="detailReceivedText">Received</p></div>
                         <div class="banner-stat-card"><h3 id="detailWorksCount">0</h3><p>Works</p></div>
                     </div>
@@ -297,6 +325,7 @@
 
             <input type="text" id="kName" placeholder="Grahak / Supplier ka Naam (e.g., Rohit Kumar)">
             <input type="number" id="kPhone" placeholder="Mobile Number">
+            <!-- FIXED: Address field will ALWAYS be visible now -->
             <input type="text" id="kAddress" placeholder="Address / Pata">
 
             <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; display: block;">Work Title (Short Name):</label>
@@ -337,7 +366,6 @@
             <input type="hidden" id="kTotal" value="0">
 
             <!-- PAYMENT -->
-            <!-- DYNAMIC LABEL BASED ON CUSTOMER/SUPPLIER -->
             <label id="paymentLabelText" style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Received (Paisa mila):</label>
             <div class="payment-row">
                 <input type="date" id="kDate1"><input type="number" id="kPay1" placeholder="1st Payment Amount">
@@ -387,6 +415,7 @@
         let currentReplacingKey = '';
         let currentReplacingIndex = -1;
         let currentAddingKey = '';
+        let myChart = null; // Graph instance
 
         const escapeHTML = (str) => {
             if (str === null || str === undefined) return '';
@@ -410,6 +439,7 @@
             const data = snapshot.val() || {};
             cloudKhataData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
             if(loggedInRole === 'owner') {
+                updateDashboardAndChart(); // Update Dashboard Graph
                 loadLedgerGridUI();
                 if(currentActivePersonKey) renderPersonDetailView(currentActivePersonKey);
             }
@@ -434,12 +464,14 @@
             document.getElementById('mainDashboard').style.display = 'block';
             document.getElementById('tabKhata').style.display = 'block';
             document.getElementById('tabLogs').style.display = 'block';
+            document.getElementById('erpDashboard').style.display = 'block'; // Show Dashboard
             document.getElementById('addCategoryBtn').style.display = 'block'; 
             document.getElementById('editCategoryBtn').style.display = 'block'; 
             document.getElementById('delCategoryBtn').style.display = 'block'; 
             loggedInRole = 'owner';
             updateCategoryDropdown();
             loadImagesUI();
+            updateDashboardAndChart(); // Load Graph First Time
             loadLedgerGridUI();
             loadLogsUI();
         }
@@ -508,6 +540,76 @@
             if(tab === 'khata') closePersonDetail();
         }
 
+        /* ==================== DASHBOARD & GRAPH FUNCTION ==================== */
+        function updateDashboardAndChart() {
+            let totalIncome = 0;
+            let totalExpense = 0;
+            let totalCustomerBusiness = 0;
+            let totalCustomerReceived = 0;
+            
+            cloudKhataData.forEach(e => {
+                let total = parseFloat(e.total) || 0;
+                let paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+
+                if(e.type === 'supplier') {
+                    totalExpense += paid;
+                } else {
+                    totalCustomerBusiness += total;
+                    totalCustomerReceived += paid;
+                    totalIncome += paid;
+                }
+            });
+
+            let bazarUdhari = totalCustomerBusiness - totalCustomerReceived;
+            if(bazarUdhari < 0) bazarUdhari = 0;
+            let cashProfit = totalIncome - totalExpense;
+
+            document.getElementById('dashIncome').innerText = `₹${totalIncome.toFixed(2)}`;
+            document.getElementById('dashExpense').innerText = `₹${totalExpense.toFixed(2)}`;
+            document.getElementById('dashUdhari').innerText = `₹${bazarUdhari.toFixed(2)}`;
+            document.getElementById('dashProfit').innerText = `₹${cashProfit.toFixed(2)}`;
+
+            const ctx = document.getElementById('businessChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income (Aaya)', 'Expense (Gaya)', 'Bazar Udhari', 'Cash Profit'],
+                    datasets: [{
+                        label: 'Amount (₹)',
+                        data: [totalIncome, totalExpense, bazarUdhari, cashProfit],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(245, 158, 11, 0.7)'
+                        ],
+                        borderColor: [
+                            '#16a34a',
+                            '#dc2626',
+                            '#2563eb',
+                            '#d97706'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        /* ==================== CATEGORY MANAGER ==================== */
         function updateCategoryDropdown() {
             const select = document.getElementById('itemFilter');
             const currentVal = select.value;
@@ -573,6 +675,7 @@
             }
         }
 
+        /* ==================== PHOTO ADD / REPLACE ==================== */
         function triggerReplace(category, index) {
             currentReplacingKey = category; currentReplacingIndex = index;
             document.getElementById('replaceFileInput').click();
@@ -708,14 +811,13 @@
         }
         function closeModal() { document.getElementById('myModal').style.display = "none"; }
 
-        /* ==================== ERP LEDGER MASTER CARDS GRID ==================== */
+        /* ==================== ERP LEDGER MASTER CARDS GRID (FIXED Sorting & Search) ==================== */
         function loadLedgerGridUI() {
             const container = document.getElementById('masterCardsContainer');
             if(!container) return;
             container.innerHTML = '';
 
             const filterType = document.getElementById('filterType').value;
-            // Get search value
             const searchQuery = document.getElementById('searchName') ? document.getElementById('searchName').value.toLowerCase().trim() : '';
             const grouped = {};
 
@@ -743,12 +845,15 @@
             // Apply Filters (Customer/Supplier)
             if(filterType !== 'all') personList = personList.filter(p => p.type === filterType);
             
-            // Apply Name Search
+            // FIXED: Search by Name OR Phone
             if(searchQuery !== '') {
-                personList = personList.filter(p => p.name.toLowerCase().includes(searchQuery));
+                personList = personList.filter(p => 
+                    p.name.toLowerCase().includes(searchQuery) || 
+                    (p.phone && p.phone.includes(searchQuery))
+                );
             }
 
-            // ALPHABETICAL SORTING (A to Z)
+            // FIXED: ALPHABETICAL SORTING (A to Z)
             personList.sort((a, b) => a.name.localeCompare(b.name));
 
             if(personList.length === 0) {
@@ -813,12 +918,12 @@
 
             if(works.length === 0) { closePersonDetail(); return; }
 
-            // LATEST WORK ON TOP: Reverse the list so newest items come first
+            // FIXED: LATEST WORK ON TOP: Reverse the list so newest items come first
             works.reverse();
 
             let personName = works[0].name;
             let pType = works[0].type;
-            let rcvText = pType === 'supplier' ? 'Paid' : 'Received';
+            let rcvText = pType === 'supplier' ? 'Paid' : 'Received'; // FIXED: Supplier says Paid
 
             let totalBusiness = 0; let totalReceived = 0;
 
@@ -1059,7 +1164,7 @@
 
         function toggleKhataFields() {
             const type = document.getElementById('khataType').value;
-            document.getElementById('kAddress').style.display = (type === 'supplier') ? 'none' : 'block';
+            document.getElementById('kAddress').style.display = 'block'; // FIXED: Address visible for Supplier
             document.getElementById('paymentLabelText').innerText = (type === 'supplier') ? 'Payment Given (Paisa Diya):' : 'Payment Received (Paisa mila):';
         }
 
