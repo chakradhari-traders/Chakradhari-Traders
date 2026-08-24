@@ -633,14 +633,12 @@
             if(isLogged === 'true' && sessionTime && Date.now() < parseInt(sessionTime)) {
                 enableOwnerUI();
             } else {
-                // FIXED: Removed location.reload() to prevent infinite loop
                 logout(); 
             }
         };
 
         function enableOwnerUI() {
             document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainDashboard').style.display = 'block';
             document.getElementById('bottomNavBar').style.display = 'flex'; 
             document.getElementById('navLogsBtn2').style.display = 'flex'; 
             loggedInRole = 'owner';
@@ -689,7 +687,6 @@
                 if (phone.length >= 10) {
                     db.ref('siteLogs').push({ phone: escapeHTML(phone), role: role, time: new Date().toLocaleString() });
                     document.getElementById('loginPage').style.display = 'none';
-                    document.getElementById('mainDashboard').style.display = 'block';
                     document.getElementById('bottomNavBar').style.display = 'none'; 
                     openShowroom(); // For customer, open showroom directly
                 } else { alert("Kripya sahi 10 digit ka phone number dalein."); }
@@ -772,7 +769,6 @@
             document.getElementById('dashTodayInc').innerText = `₹${todayInc.toFixed(0)}`;
             document.getElementById('dashMonthInc').innerText = `₹${monthIncome.toFixed(0)}`;
             document.getElementById('dashMonthExp').innerText = `₹${monthExpense.toFixed(0)}`;
-            document.getElementById('dashProfit').innerText = `₹${(monthIncome - monthExpense).toFixed(0)}`;
 
             const ctx = document.getElementById('businessChart').getContext('2d');
             if(myChart) myChart.destroy();
@@ -1483,13 +1479,14 @@
             logs.forEach(l => { display.innerHTML += `<p style="padding:12px; border-bottom:1px solid var(--border); font-size:0.9rem;">⏱️ <b>${escapeHTML(l.time)}</b><br>Role: ${escapeHTML(l.role).toUpperCase()} | Phone: <b>${escapeHTML(l.phone)}</b></p>`; });
         }
         
-        // FIXED: LOGOUT NO LONGER RELOADS THE PAGE (Which caused the hang)
         function logout() { 
             localStorage.setItem('isOwnerLoggedIn', 'false'); 
             localStorage.setItem('ownerSessionExpire', '0'); 
             loggedInRole = 'customer'; 
             
-            document.getElementById('mainDashboard').style.display = 'none'; 
+            // Saare active tabs ko band karna taaki background mein kuch na dikhe
+            document.querySelectorAll('.section-tab').forEach(el => el.classList.remove('active'));
+            
             document.getElementById('showroomView').style.display = 'none'; 
             document.getElementById('bottomNavBar').style.display = 'none'; 
             document.getElementById('loginPage').style.display = 'block'; 
