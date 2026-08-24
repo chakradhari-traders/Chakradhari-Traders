@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chakradhari Traders - ERP System</title>
     
-    <!-- ADDED: Chart.js for Business Graph -->
+    <!-- Chart.js for Business Graph -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -123,7 +123,8 @@
         .modal-close { position: absolute; top: 12px; right: 18px; font-size: 1.8rem; color: #94a3b8; cursor: pointer; }
         
         .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .payment-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        /* Payment Row Grid Updated for 3 Columns (Date, Amount, Mode) */
+        .payment-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 5px; }
         
         .logout-btn { background: #475569; width: auto; padding: 8px 15px; margin-top: 10px; }
         .hidden-file-input { display: none; }
@@ -227,7 +228,7 @@
         <!-- ERP KHATA BOOK SECTION -->
         <div id="khataSection" style="display: none;">
             
-            <!-- NEW DASHBOARD & CHART SECTION -->
+            <!-- DASHBOARD & CHART SECTION -->
             <div id="erpDashboard" style="margin-bottom: 25px; padding: 20px; background: var(--card-bg); border-radius: 14px; border: 1px solid #334155; display: none;">
                 <h3 style="color:#fff; margin-bottom: 15px;">📈 Business Dashboard</h3>
                 <div class="banner-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 20px;">
@@ -248,7 +249,6 @@
                         <h3 id="dashProfit">₹0</h3>
                     </div>
                 </div>
-                <!-- GRAPH CANVAS -->
                 <div style="background: var(--card-inner); padding: 15px; border-radius: 12px; border: 1px solid #475569; position: relative; height: 250px; width: 100%;">
                     <canvas id="businessChart"></canvas>
                 </div>
@@ -259,7 +259,6 @@
                 <div class="erp-top-bar">
                     <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">📋 Saved ERP Ledger Accounts</h3>
                     
-                    <!-- SEARCH BY NAME OR PHONE -->
                     <input type="text" id="searchName" placeholder="🔍 Naam ya Number se khojein..." onkeyup="loadLedgerGridUI()" style="flex-grow: 1; margin: 0; min-width: 200px; padding: 10px; border-radius: 8px; background: var(--card-inner); color: white; border: 1px solid #475569;">
                     
                     <select id="filterType" onchange="loadLedgerGridUI()" style="width: auto; margin: 0;">
@@ -325,7 +324,6 @@
 
             <input type="text" id="kName" placeholder="Grahak / Supplier ka Naam (e.g., Rohit Kumar)">
             <input type="number" id="kPhone" placeholder="Mobile Number">
-            <!-- FIXED: Address field will ALWAYS be visible now -->
             <input type="text" id="kAddress" placeholder="Address / Pata">
 
             <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; display: block;">Work Title (Short Name):</label>
@@ -365,16 +363,37 @@
             </div>
             <input type="hidden" id="kTotal" value="0">
 
-            <!-- PAYMENT -->
-            <label id="paymentLabelText" style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Received (Paisa mila):</label>
+            <!-- PAYMENT WITH MODE -->
+            <label id="paymentLabelText" style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Details (Paisa mila/diya):</label>
             <div class="payment-row">
-                <input type="date" id="kDate1"><input type="number" id="kPay1" placeholder="1st Payment Amount">
+                <input type="date" id="kDate1">
+                <input type="number" id="kPay1" placeholder="1st Amount">
+                <select id="kPayMode1" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
             </div>
             <div class="payment-row">
-                <input type="date" id="kDate2"><input type="number" id="kPay2" placeholder="2nd Payment Amount">
+                <input type="date" id="kDate2">
+                <input type="number" id="kPay2" placeholder="2nd Amount">
+                <select id="kPayMode2" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
             </div>
             <div class="payment-row">
-                <input type="date" id="kDate3"><input type="number" id="kPay3" placeholder="3rd Payment Amount">
+                <input type="date" id="kDate3">
+                <input type="number" id="kPay3" placeholder="3rd Amount">
+                <select id="kPayMode3" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
             </div>
 
             <textarea id="kNote" placeholder="Koi special note likhna hai?"></textarea>
@@ -415,7 +434,7 @@
         let currentReplacingKey = '';
         let currentReplacingIndex = -1;
         let currentAddingKey = '';
-        let myChart = null; // Graph instance
+        let myChart = null; 
 
         const escapeHTML = (str) => {
             if (str === null || str === undefined) return '';
@@ -439,7 +458,7 @@
             const data = snapshot.val() || {};
             cloudKhataData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
             if(loggedInRole === 'owner') {
-                updateDashboardAndChart(); // Update Dashboard Graph
+                updateDashboardAndChart(); 
                 loadLedgerGridUI();
                 if(currentActivePersonKey) renderPersonDetailView(currentActivePersonKey);
             }
@@ -464,14 +483,14 @@
             document.getElementById('mainDashboard').style.display = 'block';
             document.getElementById('tabKhata').style.display = 'block';
             document.getElementById('tabLogs').style.display = 'block';
-            document.getElementById('erpDashboard').style.display = 'block'; // Show Dashboard
+            document.getElementById('erpDashboard').style.display = 'block'; 
             document.getElementById('addCategoryBtn').style.display = 'block'; 
             document.getElementById('editCategoryBtn').style.display = 'block'; 
             document.getElementById('delCategoryBtn').style.display = 'block'; 
             loggedInRole = 'owner';
             updateCategoryDropdown();
             loadImagesUI();
-            updateDashboardAndChart(); // Load Graph First Time
+            updateDashboardAndChart(); 
             loadLedgerGridUI();
             loadLogsUI();
         }
@@ -579,32 +598,15 @@
                     datasets: [{
                         label: 'Amount (₹)',
                         data: [totalIncome, totalExpense, bazarUdhari, cashProfit],
-                        backgroundColor: [
-                            'rgba(34, 197, 94, 0.7)',
-                            'rgba(239, 68, 68, 0.7)',
-                            'rgba(59, 130, 246, 0.7)',
-                            'rgba(245, 158, 11, 0.7)'
-                        ],
-                        borderColor: [
-                            '#16a34a',
-                            '#dc2626',
-                            '#2563eb',
-                            '#d97706'
-                        ],
-                        borderWidth: 1,
-                        borderRadius: 4
+                        backgroundColor: ['rgba(34, 197, 94, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(245, 158, 11, 0.7)'],
+                        borderColor: ['#16a34a', '#dc2626', '#2563eb', '#d97706'],
+                        borderWidth: 1, borderRadius: 4
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } },
+                    plugins: { legend: { display: false } }
                 }
             });
         }
@@ -675,7 +677,6 @@
             }
         }
 
-        /* ==================== PHOTO ADD / REPLACE ==================== */
         function triggerReplace(category, index) {
             currentReplacingKey = category; currentReplacingIndex = index;
             document.getElementById('replaceFileInput').click();
@@ -696,16 +697,12 @@
                 const refName = 'showroom/' + Date.now() + '_' + file.name;
                 const fileRef = storage.ref().child(refName);
                 fileRef.put(file).then(snapshot => snapshot.ref.getDownloadURL())
-                .then(url => {
-                    saveImageUrlToDB(url, category, indexToReplace);
-                })
+                .then(url => { saveImageUrlToDB(url, category, indexToReplace); })
                 .catch(err => {
-                    console.warn("Storage upload failed, falling back to Base64: " + err.message);
+                    console.warn("Storage upload failed, falling back: " + err.message);
                     fallbackBase64Upload(file, category, indexToReplace);
                 });
-            } catch(e) {
-                fallbackBase64Upload(file, category, indexToReplace);
-            }
+            } catch(e) { fallbackBase64Upload(file, category, indexToReplace); }
         }
 
         function fallbackBase64Upload(file, category, indexToReplace) {
@@ -730,12 +727,10 @@
             if(!cloudImagesData[category]) cloudImagesData[category] = [];
             if(indexToReplace > -1) cloudImagesData[category][indexToReplace] = url;
             else cloudImagesData[category].push(url);
-            
             db.ref('customShowroomImages/' + category).set(cloudImagesData[category]).then(() => {
                 document.getElementById('loader').style.display = 'none';
             }).catch(err => {
-                document.getElementById('loader').style.display = 'none';
-                alert("DB Error: " + err.message);
+                document.getElementById('loader').style.display = 'none'; alert("DB Error: " + err.message);
             });
         }
 
@@ -765,7 +760,6 @@
         function loadImagesUI() {
             const item = document.getElementById('itemFilter').value;
             if(!item) return;
-
             const grid = document.getElementById('imageGrid');
             grid.innerHTML = '';
             let imgs = cloudImagesData[item] || [];
@@ -777,8 +771,7 @@
                         <div class="owner-actions">
                             <button class="btn-replace" onclick="triggerReplace('${escapeHTML(item)}', ${index})" style="background:#2563eb;">✏️ Replace</button>
                             <button class="btn-delete" onclick="deleteImage('${escapeHTML(item)}', ${index})" style="background:#dc2626;">🗑️ Delete</button>
-                        </div>
-                    `;
+                        </div>`;
                 }
                 grid.innerHTML += `
                     <div class="img-card">
@@ -800,8 +793,7 @@
                             <div style="font-size: 3rem; color: #94a3b8; margin-bottom: 10px;">+</div>
                             <h3 style="color:#e2e8f0;">Is Category Me Photo Add Karein</h3>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
@@ -811,7 +803,7 @@
         }
         function closeModal() { document.getElementById('myModal').style.display = "none"; }
 
-        /* ==================== ERP LEDGER MASTER CARDS GRID (FIXED Sorting & Search) ==================== */
+        /* ==================== ERP LEDGER MASTER CARDS ==================== */
         function loadLedgerGridUI() {
             const container = document.getElementById('masterCardsContainer');
             if(!container) return;
@@ -842,10 +834,8 @@
 
             let personList = Object.values(grouped);
             
-            // Apply Filters (Customer/Supplier)
             if(filterType !== 'all') personList = personList.filter(p => p.type === filterType);
             
-            // FIXED: Search by Name OR Phone
             if(searchQuery !== '') {
                 personList = personList.filter(p => 
                     p.name.toLowerCase().includes(searchQuery) || 
@@ -853,7 +843,6 @@
                 );
             }
 
-            // FIXED: ALPHABETICAL SORTING (A to Z)
             personList.sort((a, b) => a.name.localeCompare(b.name));
 
             if(personList.length === 0) {
@@ -918,12 +907,11 @@
 
             if(works.length === 0) { closePersonDetail(); return; }
 
-            // FIXED: LATEST WORK ON TOP: Reverse the list so newest items come first
             works.reverse();
 
             let personName = works[0].name;
             let pType = works[0].type;
-            let rcvText = pType === 'supplier' ? 'Paid' : 'Received'; // FIXED: Supplier says Paid
+            let rcvText = pType === 'supplier' ? 'Paid' : 'Received';
 
             let totalBusiness = 0; let totalReceived = 0;
 
@@ -949,10 +937,12 @@
                 let status = w.status || (pendAmt <= 0 ? 'Delivered' : 'Pending');
                 let badgeClass = (status === 'Delivered') ? 'delivered' : '';
 
+                // NEW: Added Payment Mode to description
                 let payDesc = '';
-                if(w.pay1 > 0) payDesc += `1st: ₹${w.pay1} (${w.date1 || '-'}) | `;
-                if(w.pay2 > 0) payDesc += `2nd: ₹${w.pay2} (${w.date2 || '-'}) | `;
-                if(w.pay3 > 0) payDesc += `3rd: ₹${w.pay3} (${w.date3 || '-'})`;
+                if(w.pay1 > 0) payDesc += `1st: ₹${w.pay1} (${w.date1 || '-'}) ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
+                if(w.pay2 > 0) payDesc += `2nd: ₹${w.pay2} (${w.date2 || '-'}) ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
+                if(w.pay3 > 0) payDesc += `3rd: ₹${w.pay3} (${w.date3 || '-'}) ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''}`;
+                payDesc = payDesc.replace(/ \| $/, '');
 
                 let itemsOverview = '';
                 if(w.items && w.items.length > 0) {
@@ -985,7 +975,7 @@
                             <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
                             <div class="amt-box pending"><h5>Pending</h5><p>₹${pendAmt.toFixed(2)}</p></div>
                         </div>
-                        <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${escapeHTML(payDesc)}</p>
+                        <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
                     </div>
                 `;
             });
@@ -1003,7 +993,15 @@
             let dParts = rawDate.split('-');
             let formattedDate = dParts.length === 3 ? `${dParts[2]}-${dParts[1]}-${dParts[0]}` : rawDate;
 
+            // Gather Unique Payment Modes
+            let modes = [];
+            if(w.pay1 > 0 && w.payMode1) modes.push(w.payMode1);
+            if(w.pay2 > 0 && w.payMode2) modes.push(w.payMode2);
+            if(w.pay3 > 0 && w.payMode3) modes.push(w.payMode3);
+            let uniqueModes = [...new Set(modes)].join(' + ');
+
             let rcvText = w.type === 'supplier' ? 'Amount Paid' : 'Amount Received';
+            if(uniqueModes) rcvText += ` (${escapeHTML(uniqueModes)})`;
 
             let itemsHtml = ''; let subtotal = 0;
             if(w.items && w.items.length > 0) {
@@ -1164,7 +1162,7 @@
 
         function toggleKhataFields() {
             const type = document.getElementById('khataType').value;
-            document.getElementById('kAddress').style.display = 'block'; // FIXED: Address visible for Supplier
+            document.getElementById('kAddress').style.display = 'block';
             document.getElementById('paymentLabelText').innerText = (type === 'supplier') ? 'Payment Given (Paisa Diya):' : 'Payment Received (Paisa mila):';
         }
 
@@ -1205,12 +1203,19 @@
                 otherCharges: parseFloat(document.getElementById('kOther').value) || 0,
                 discount: parseFloat(document.getElementById('kDiscount').value) || 0,
                 total: parseFloat(document.getElementById('kTotal').value) || 0,
+                
                 date1: document.getElementById('kDate1').value,
                 pay1: parseFloat(document.getElementById('kPay1').value) || 0,
+                payMode1: document.getElementById('kPayMode1').value,
+                
                 date2: document.getElementById('kDate2').value,
                 pay2: parseFloat(document.getElementById('kPay2').value) || 0,
+                payMode2: document.getElementById('kPayMode2').value,
+                
                 date3: document.getElementById('kDate3').value,
                 pay3: parseFloat(document.getElementById('kPay3').value) || 0,
+                payMode3: document.getElementById('kPayMode3').value,
+                
                 note: document.getElementById('kNote').value
             };
 
@@ -1259,10 +1264,16 @@
 
             document.getElementById('kDate1').value = item.date1 || '';
             document.getElementById('kPay1').value = item.pay1 || '';
+            document.getElementById('kPayMode1').value = item.payMode1 || '';
+            
             document.getElementById('kDate2').value = item.date2 || '';
             document.getElementById('kPay2').value = item.pay2 || '';
+            document.getElementById('kPayMode2').value = item.payMode2 || '';
+            
             document.getElementById('kDate3').value = item.date3 || '';
             document.getElementById('kPay3').value = item.pay3 || '';
+            document.getElementById('kPayMode3').value = item.payMode3 || '';
+            
             document.getElementById('kNote').value = item.note || '';
 
             document.getElementById('workModalTitle').innerText = "Edit Work: " + item.name;
@@ -1291,12 +1302,19 @@
             document.getElementById('kDiscount').value = '';
             document.getElementById('kTotal').value = '0';
             document.getElementById('kGrandTotalLabel').innerText = '0.00';
+            
             document.getElementById('kDate1').value = '';
             document.getElementById('kPay1').value = '';
+            document.getElementById('kPayMode1').value = '';
+            
             document.getElementById('kDate2').value = '';
             document.getElementById('kPay2').value = '';
+            document.getElementById('kPayMode2').value = '';
+            
             document.getElementById('kDate3').value = '';
             document.getElementById('kPay3').value = '';
+            document.getElementById('kPayMode3').value = '';
+            
             document.getElementById('kNote').value = '';
         }
 
