@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- FIXED: Proper Responsive Viewport for Mobile -->
+    <!-- FORCED DESKTOP MODE (Auto Desktop View on Mobile) Removed, Made Fully Responsive -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chakradhari Traders - ERP System</title>
     <style>
@@ -19,7 +19,7 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
         
-        body { background-color: var(--dark); color: var(--light); padding: 15px; }
+        body { background-color: var(--dark); color: var(--light); padding: 15px; user-select: none; -webkit-user-select: none; }
         
         header { text-align: center; padding: 25px; background: var(--card-bg); border-radius: 16px; margin-bottom: 20px; border-bottom: 4px solid var(--blue); }
         header h1 { color: #fff; font-size: 2.2rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
@@ -87,7 +87,8 @@
         .works-section-title h3 { font-size: 1.4rem; color: #fff; font-weight: 700; word-break: break-word; }
         
         .work-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #334155; padding: 18px; margin-bottom: 15px; position: relative; overflow: hidden; }
-        .work-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding-right: 90px;}
+        /* FIXED: Header padding to accommodate row buttons */
+        .work-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding-right: 180px;}
         .work-header h4 { font-size: 1.15rem; color: #fff; font-weight: 700; word-break: break-word; }
         .work-header .category-badge { font-size: 0.78rem; color: #94a3b8; }
         .status-badge { background: #fef9c3; color: #854d0e; font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 14px; }
@@ -99,8 +100,9 @@
         .amt-box.received p { color: #22c55e; }
         .amt-box.pending p { color: #ef4444; }
         
-        .work-item-actions { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 6px; }
-        .work-btn { background: #334155; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-weight: bold; width: 100%;}
+        /* FIXED: Buttons now in a horizontal line at the top */
+        .work-item-actions { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: row; gap: 6px; }
+        .work-btn { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-weight: bold; width: auto;}
         .work-btn:hover { background: #475569; }
         
         .floating-add-btn { position: fixed; bottom: 30px; right: 30px; background: var(--blue); color: white; width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 25px rgba(37,99,235,0.6); z-index: 100; transition: 0.2s; }
@@ -130,11 +132,9 @@
         #invoicePrintArea { display: none; background: #fff; color: #000; padding: 30px; font-family: 'Segoe UI', Arial, sans-serif; }
         
         @media print {
-            /* FIXED: Prevents browser headers/footers */
             @page { margin: 0; size: auto; } 
             body { margin: 1cm; background: white; color: black; }
             body > * { display: none !important; }
-            /* FIXED: Removed absolute positioning to prevent cutting off multiple pages */
             #invoicePrintArea { display: block !important; position: relative; width: 100%; height: auto; background: #fff; page-break-inside: auto; }
             
             .inv-header { display: flex; justify-content: space-between; border-bottom: 4px solid var(--blue) !important; padding-bottom: 20px; margin-bottom: 25px; }
@@ -151,7 +151,6 @@
             .inv-footer-msg { margin-top:30px; border-top: 1px solid #cbd5e1; padding-top: 15px; font-size: 13px; color: #64748b; text-align:center; page-break-inside: avoid; }
         }
     </style>
-    <!-- FIREBASE CLOUD LIBRARIES (Added Auth and Storage) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
@@ -171,7 +170,6 @@
         <select id="userRole" onchange="toggleRoleFields()">
             <option value="customer">Customer</option>
             <option value="owner">Owner</option>
-            <!-- REMOVED EMPLOYEE OPTION -->
         </select>
         
         <div id="phoneField">
@@ -179,7 +177,6 @@
         </div>
         <div id="passField" style="display: none;">
             <div class="password-box">
-                <!-- NOW CONNECTED TO FIREBASE AUTH FOR SECURITY -->
                 <input type="password" id="loginPass" placeholder="Owner Firebase Password">
                 <button type="button" onclick="togglePassView()">👁️</button>
             </div>
@@ -231,16 +228,19 @@
             <!-- MASTER CARDS LIST VIEW -->
             <div id="ledgerGridView">
                 <div class="erp-top-bar">
-                    <h3 style="flex-grow: 1; color: #fff;">📋 Saved ERP Ledger Accounts</h3>
+                    <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">📋 Saved ERP Ledger Accounts</h3>
                     
-                    <select id="filterType" onchange="loadLedgerGridUI()" style="width: 100%; max-width: 200px; margin: 0;">
+                    <!-- NEW SEARCH BAR ADDED HERE -->
+                    <input type="text" id="searchName" placeholder="🔍 Grahak/Supplier ka naam khojein..." onkeyup="loadLedgerGridUI()" style="flex-grow: 1; margin: 0; min-width: 200px; padding: 10px; border-radius: 8px; background: var(--card-inner); color: white; border: 1px solid #475569;">
+                    
+                    <select id="filterType" onchange="loadLedgerGridUI()" style="width: auto; margin: 0;">
                         <option value="all">🔍 All (Sabhi Dekho)</option>
-                        <option value="customer">👤 Only Customers</option>
-                        <option value="supplier">🏢 Only Suppliers</option>
+                        <option value="customer">👤 Customers</option>
+                        <option value="supplier">🏢 Suppliers</option>
                     </select>
 
-                    <button onclick="openWorkModalForNewPerson()" style="width: 100%; background: #16a34a; margin-top: 10px;">
-                        ➕ Naya Grahak / Kaam Jodein
+                    <button onclick="openWorkModalForNewPerson()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
+                        ➕ Naya Kaam
                     </button>
                 </div>
 
@@ -258,7 +258,8 @@
                     <div class="subtitle">Outstanding</div>
                     <div class="banner-stats-grid">
                         <div class="banner-stat-card"><h3 id="detailBusinessAmt">₹0</h3><p>Business</p></div>
-                        <div class="banner-stat-card"><h3 id="detailReceivedAmt">₹0</h3><p>Received</p></div>
+                        <!-- ID added here to change Received to Paid dynamically -->
+                        <div class="banner-stat-card"><h3 id="detailReceivedAmt">₹0</h3><p id="detailReceivedText">Received</p></div>
                         <div class="banner-stat-card"><h3 id="detailWorksCount">0</h3><p>Works</p></div>
                     </div>
                 </div>
@@ -336,7 +337,8 @@
             <input type="hidden" id="kTotal" value="0">
 
             <!-- PAYMENT -->
-            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Received:</label>
+            <!-- DYNAMIC LABEL BASED ON CUSTOMER/SUPPLIER -->
+            <label id="paymentLabelText" style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Received (Paisa mila):</label>
             <div class="payment-row">
                 <input type="date" id="kDate1"><input type="number" id="kPay1" placeholder="1st Payment Amount">
             </div>
@@ -362,7 +364,6 @@
     <input type="file" id="addFileInput" class="hidden-file-input" accept="image/*" onchange="handleAddImageFileChange(event)">
 
     <script>
-        // FIREBASE CONFIGURATION
         const firebaseConfig = {
             apiKey: "AIzaSyDYuJJ1jbWF-NELI-B8BikkkVqdhMmklYw",
             authDomain: "chakradhari-traders.firebaseapp.com",
@@ -374,8 +375,8 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const auth = firebase.auth(); // FIXED: Initialized Firebase Auth
-        const storage = firebase.storage(); // FIXED: Initialized Firebase Storage
+        const auth = firebase.auth(); 
+        const storage = firebase.storage(); 
 
         let loggedInRole = 'customer';
         let cloudImagesData = {};
@@ -387,13 +388,11 @@
         let currentReplacingIndex = -1;
         let currentAddingKey = '';
 
-        // FIXED: Security - XSS Helper Function
         const escapeHTML = (str) => {
             if (str === null || str === undefined) return '';
             return String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
         };
 
-        // REAL-TIME SYNC FOR CATEGORIES & IMAGES
         db.ref('customShowroomImages').on('value', (snapshot) => {
             cloudImagesData = snapshot.val() || {};
             db.ref('showroomCategories').once('value', (catSnap) => {
@@ -456,7 +455,6 @@
             passInput.type = (passInput.type === 'password') ? 'text' : 'password';
         }
 
-        // FIXED: Using Secure Firebase Auth instead of Plaintext
         function handleLogin() {
             const role = document.getElementById('userRole').value;
             loggedInRole = role;
@@ -465,7 +463,6 @@
                 const pass = document.getElementById('loginPass').value;
                 document.getElementById('loader').style.display = 'block';
                 
-                // Note: User must be created in Firebase Auth Console with chakradhari2026@gmail.com
                 auth.signInWithEmailAndPassword('chakradhari2026@gmail.com', pass)
                 .then(() => {
                     document.getElementById('loader').style.display = 'none';
@@ -475,12 +472,10 @@
                 })
                 .catch((error) => {
                     document.getElementById('loader').style.display = 'none';
-                    // Fallback for Demo if Auth is not setup yet by Owner
                     if(pass === 'Aditya930@') {
                         localStorage.setItem('isOwnerLoggedIn', 'true');
                         localStorage.setItem('ownerSessionExpire', Date.now() + 3600000);
                         enableOwnerUI();
-                        console.warn("Using fallback auth. Please enable Firebase Auth.");
                     } else {
                         alert("Galat Password ya Firebase Error: " + error.message);
                     }
@@ -513,7 +508,6 @@
             if(tab === 'khata') closePersonDetail();
         }
 
-        /* ==================== CATEGORY MANAGER ==================== */
         function updateCategoryDropdown() {
             const select = document.getElementById('itemFilter');
             const currentVal = select.value;
@@ -579,7 +573,6 @@
             }
         }
 
-        /* ==================== PHOTO ADD / REPLACE (FIXED: Uses Firebase Storage & Try/Catch) ==================== */
         function triggerReplace(category, index) {
             currentReplacingKey = category; currentReplacingIndex = index;
             document.getElementById('replaceFileInput').click();
@@ -596,8 +589,6 @@
                 document.getElementById('loader').style.display = 'none';
                 return;
             }
-            
-            // Try saving to Firebase Storage first (Better Architecture)
             try {
                 const refName = 'showroom/' + Date.now() + '_' + file.name;
                 const fileRef = storage.ref().child(refName);
@@ -717,17 +708,18 @@
         }
         function closeModal() { document.getElementById('myModal').style.display = "none"; }
 
-        /* ==================== ERP LEDGER MASTER CARDS GRID (FIXED Key Collision) ==================== */
+        /* ==================== ERP LEDGER MASTER CARDS GRID ==================== */
         function loadLedgerGridUI() {
             const container = document.getElementById('masterCardsContainer');
             if(!container) return;
             container.innerHTML = '';
 
             const filterType = document.getElementById('filterType').value;
+            // Get search value
+            const searchQuery = document.getElementById('searchName') ? document.getElementById('searchName').value.toLowerCase().trim() : '';
             const grouped = {};
 
             cloudKhataData.forEach(e => {
-                // FIXED: Normalize keys to prevent collision issues
                 const cleanName = (e.name || 'Unknown').trim().toLowerCase();
                 const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
                 const key = cleanName + '_' + cleanPhone;
@@ -747,18 +739,26 @@
             });
 
             let personList = Object.values(grouped);
+            
+            // Apply Filters (Customer/Supplier)
             if(filterType !== 'all') personList = personList.filter(p => p.type === filterType);
+            
+            // Apply Name Search
+            if(searchQuery !== '') {
+                personList = personList.filter(p => p.name.toLowerCase().includes(searchQuery));
+            }
+
+            // ALPHABETICAL SORTING (A to Z)
+            personList.sort((a, b) => a.name.localeCompare(b.name));
 
             if(personList.length === 0) {
-                container.innerHTML = `<p style="color:#94a3b8; padding: 20px 0;">Abhi tak koi hisab save nahi hua hai.</p>`; return;
+                container.innerHTML = `<p style="color:#94a3b8; padding: 20px 0;">Koi Grahak ya Supplier nahi mila.</p>`; return;
             }
 
             personList.forEach(p => {
                 let outstanding = (p.totalBusiness - p.totalReceived).toFixed(2);
                 let initial = p.name.charAt(0).toUpperCase();
                 let phoneDisplay = escapeHTML(p.phone) || 'N/A';
-                
-                // Fixed WhatsApp link structure
                 let waLink = p.phone ? `https://wa.me/91${p.phone.replace(/\D/g, '')}` : '#';
                 
                 container.innerHTML += `
@@ -805,7 +805,7 @@
             const container = document.getElementById('worksCardsContainer');
             container.innerHTML = '';
 
-            const works = cloudKhataData.filter(e => {
+            let works = cloudKhataData.filter(e => {
                 const cleanName = (e.name || 'Unknown').trim().toLowerCase();
                 const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
                 return (cleanName + '_' + cleanPhone) === personKey;
@@ -813,7 +813,13 @@
 
             if(works.length === 0) { closePersonDetail(); return; }
 
+            // LATEST WORK ON TOP: Reverse the list so newest items come first
+            works.reverse();
+
             let personName = works[0].name;
+            let pType = works[0].type;
+            let rcvText = pType === 'supplier' ? 'Paid' : 'Received';
+
             let totalBusiness = 0; let totalReceived = 0;
 
             works.forEach(w => {
@@ -824,6 +830,7 @@
             document.getElementById('detailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
             document.getElementById('detailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
             document.getElementById('detailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
+            document.getElementById('detailReceivedText').innerText = rcvText;
             document.getElementById('detailWorksCount').innerText = works.length;
             document.getElementById('detailPersonNameTitle').innerText = `${escapeHTML(personName)} - All Works`;
 
@@ -870,7 +877,7 @@
 
                         <div class="work-amounts-grid">
                             <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
-                            <div class="amt-box received"><h5>Received</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
+                            <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
                             <div class="amt-box pending"><h5>Pending</h5><p>₹${pendAmt.toFixed(2)}</p></div>
                         </div>
                         <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${escapeHTML(payDesc)}</p>
@@ -890,6 +897,8 @@
             let rawDate = w.entryDate || new Date().toISOString().split('T')[0];
             let dParts = rawDate.split('-');
             let formattedDate = dParts.length === 3 ? `${dParts[2]}-${dParts[1]}-${dParts[0]}` : rawDate;
+
+            let rcvText = w.type === 'supplier' ? 'Amount Paid' : 'Amount Received';
 
             let itemsHtml = ''; let subtotal = 0;
             if(w.items && w.items.length > 0) {
@@ -955,7 +964,7 @@
                         ${chargesHtml}
                         ${discHtml}
                         <tr class="inv-summary-row"><td colspan="3" style="text-align:right; font-size: 18px;">Final Total</td><td style="font-size: 18px;">₹${finalTotal.toFixed(2)}</td></tr>
-                        <tr><td colspan="3" style="text-align:right; color:#16a34a; font-weight:bold;">Amount Received</td><td style="color:#16a34a; font-weight:bold;">₹${rcvAmt.toFixed(2)}</td></tr>
+                        <tr><td colspan="3" style="text-align:right; color:#16a34a; font-weight:bold;">${rcvText}</td><td style="color:#16a34a; font-weight:bold;">₹${rcvAmt.toFixed(2)}</td></tr>
                         <tr><td colspan="3" style="text-align:right; color:#dc2626; font-weight:bold;">Pending Balance</td><td style="color:#dc2626; font-weight:bold;">₹${pending.toFixed(2)}</td></tr>
                     </tbody>
                 </table>
@@ -1009,7 +1018,6 @@
             let o = parseFloat(document.getElementById('kOther').value) || 0;
             let d = parseFloat(document.getElementById('kDiscount').value) || 0;
             
-            // FIXED: Float precision formatting
             let finalTotal = subtotal + l + t + i + o - d;
             if(finalTotal < 0) finalTotal = 0;
             finalTotal = Math.round(finalTotal * 100) / 100;
@@ -1052,6 +1060,7 @@
         function toggleKhataFields() {
             const type = document.getElementById('khataType').value;
             document.getElementById('kAddress').style.display = (type === 'supplier') ? 'none' : 'block';
+            document.getElementById('paymentLabelText').innerText = (type === 'supplier') ? 'Payment Given (Paisa Diya):' : 'Payment Received (Paisa mila):';
         }
 
         function saveWorkEntry() {
