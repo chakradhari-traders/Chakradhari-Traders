@@ -1,1502 +1,1342 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <!-- FORCED DESKTOP MODE (Always opens like PC view as you ordered) -->
-    <meta name="viewport" content="width=1200">
-    <title>Chakradhari Traders - ERP App</title>
-    
-    <!-- Chart.js for Business Graph -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- FIREBASE SDKS (Ye missing the!) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chakradhari Traders - ERP System</title>
+    
+    <!-- Chart.js for Business Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    <style>
+        :root { 
+            --primary: #d32f2f; 
+            --blue: #2563eb; 
+            --dark: #0f172a; 
+            --card-bg: #1e293b; 
+            --card-inner: #0f172a; 
+            --light: #f8fafc; 
+            --steel: #4682B4; 
+            --green: #16a34a; 
+            --red: #dc2626; 
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        
+        body { background-color: var(--dark); color: var(--light); padding: 15px; user-select: none; -webkit-user-select: none; }
+        
+        header { text-align: center; padding: 25px; background: var(--card-bg); border-radius: 16px; margin-bottom: 20px; border-bottom: 4px solid var(--blue); }
+        header h1 { color: #fff; font-size: 2.2rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+        header p { color: #94a3b8; font-size: 0.95rem; }
+        
+        .info-bar { background: var(--card-bg); padding: 12px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-around; gap: 10px; font-size: 0.88rem; border: 1px solid #334155; }
+        .info-bar a { color: #4ade80; text-decoration: none; font-weight: bold; }
+        
+        /* Login Styles */
+        .login-container { max-width: 420px; margin: 80px auto; background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; }
+        .login-container h2 { margin-bottom: 20px; color: var(--blue); }
+        select, input, textarea { width: 100%; padding: 10px; margin: 6px 0; background: var(--card-inner); border: 1px solid #475569; color: white; border-radius: 8px; font-size: 0.95rem; }
+        button { background: var(--blue); color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; margin-top: 10px; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        
+        .password-box { display: flex; align-items: center; gap: 8px; }
+        .password-box button { width: auto; margin: 0; padding: 12px 15px; background: #334155; font-size: 0.85rem; }
+        
+        /* Dashboard Tabs */
+        .main-content { display: none; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { background: var(--card-bg); color: #cbd5e1; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: auto; margin: 0; border: 1px solid #334155; flex-grow: 1; text-align: center; }
+        .tab-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+        
+        /* Showroom Section */
+        .controls { background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #334155; }
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .img-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid #334155; transition: 0.3s; display: flex; flex-direction: column; justify-content: space-between; }
+        .img-card img { width: 100%; height: 240px; object-fit: cover; cursor: pointer; }
+        .img-card-body { padding: 15px; text-align: center; }
+        .owner-actions { display: flex; gap: 10px; margin-top: 10px; }
+        
+        /* ==================== ERP LEDGER UI ==================== */
+        .erp-top-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; background: var(--card-bg); padding: 15px; border-radius: 14px; border: 1px solid #334155; }
+        .erp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+        
+        .person-card { background: var(--card-bg); border-radius: 18px; border: 1px solid #334155; overflow: hidden; padding: 18px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .person-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .avatar-circle { width: 48px; height: 48px; border-radius: 50%; background: var(--blue); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: bold; flex-shrink: 0; }
+        .person-card.supplier .avatar-circle { background: var(--steel); }
+        .person-name h3 { font-size: 1.15rem; color: #fff; line-height: 1.2; word-break: break-word; }
+        .person-name p { font-size: 0.85rem; color: #94a3b8; margin-top: 3px; }
+        
+        .stats-box { background: var(--card-inner); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; text-align: center; gap: 10px; margin-bottom: 16px; border: 1px solid #334155; }
+        .stat-item h4 { font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px; font-weight: 600; }
+        .stat-item p { font-size: 1.2rem; font-weight: 800; color: #fff; word-break: break-word;}
+        .stat-item.outstanding p { color: #3b82f6; }
+        
+        .person-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .action-icon-btn { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: 0.2s; }
+        .action-icon-btn:hover { background: #1d4ed8; }
+        
+        /* ==================== CUSTOMER DETAIL VIEW ==================== */
+        #personDetailView { display: none; }
+        .detail-banner { background: var(--blue); border-radius: 20px; padding: 25px 15px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(37,99,235,0.3); }
+        .detail-banner h2 { font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 4px; word-break: break-word;}
+        .detail-banner .subtitle { font-size: 0.95rem; color: #e2e8f0; margin-bottom: 20px; font-weight: 600; }
+        
+        .banner-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
+        .banner-stat-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); border-radius: 14px; padding: 14px; text-align: center; }
+        .banner-stat-card h3 { font-size: 1.2rem; font-weight: 800; color: #fff; word-break: break-word; }
+        .banner-stat-card p { font-size: 0.8rem; color: #e2e8f0; font-weight: 600; margin-top: 2px; }
+        
+        .works-section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;}
+        .works-section-title h3 { font-size: 1.4rem; color: #fff; font-weight: 700; word-break: break-word; }
+        
+        .work-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #334155; padding: 18px; margin-bottom: 15px; position: relative; overflow: hidden; }
+        .work-header { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; padding-right: 180px;}
+        .work-header h4 { font-size: 1.15rem; color: #fff; font-weight: 700; word-break: break-word; }
+        .work-header .category-badge { font-size: 0.78rem; color: #94a3b8; }
+        .status-badge { background: #fef9c3; color: #854d0e; font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 14px; }
+        .status-badge.delivered { background: #dcfce7; color: #166534; }
+        
+        .work-amounts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); background: var(--card-inner); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #334155; gap: 8px; }
+        .amt-box h5 { font-size: 0.75rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px; }
+        .amt-box p { font-size: 1rem; font-weight: 800; color: #fff; word-break: break-word; }
+        .amt-box.received p { color: #22c55e; }
+        .amt-box.pending p { color: #ef4444; }
+        
+        .work-item-actions { position: absolute; top: 15px; right: 15px; display: flex; flex-direction: row; gap: 6px; }
+        .work-btn { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; font-weight: bold; width: auto;}
+        .work-btn:hover { background: #475569; }
+        
+        .floating-add-btn { position: fixed; bottom: 30px; right: 30px; background: var(--blue); color: white; width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 25px rgba(37,99,235,0.6); z-index: 100; transition: 0.2s; }
+        .floating-add-btn:hover { transform: scale(1.08); }
 
-        :root { 
-            --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --green: #10b981;
-            --red: #ef4444; 
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; user-select: none; -webkit-user-select: none; }
-        
-        #appContainer { max-width: 1200px; margin: 0 auto; position: relative; min-height: 100vh; padding: 15px; }
+        /* MULTIPLE ITEMS & BILLING CSS */
+        .items-container { background: #111; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #334155; overflow-x: auto; }
+        .item-row { background: var(--card-inner); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px dashed #475569; }
+        .item-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .item-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; }
+        .del-item-btn { background: var(--red); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; width: auto; }
+        
+        .charges-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #334155;}
+        
+        .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; padding: 15px; }
+        .modal-content { background: var(--card-bg); max-width: 600px; width: 100%; border-radius: 18px; padding: 25px; border: 1px solid #475569; max-height: 90vh; overflow-y: auto; position: relative; }
+        .modal-close { position: absolute; top: 12px; right: 18px; font-size: 1.8rem; color: #94a3b8; cursor: pointer; }
+        
+        .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        /* Payment Row Grid Updated for 3 Columns (Date, Amount, Mode) */
+        .payment-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 5px; }
+        
+        .logout-btn { background: #475569; width: auto; padding: 8px 15px; margin-top: 10px; }
+        .hidden-file-input { display: none; }
+        #loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); padding: 20px 30px; border-radius: 12px; color: #fff; z-index: 9999; font-weight: bold; border: 1px solid #475569; text-align: center; }
 
-        /* Login Styles */
-        .login-container { max-width: 420px; margin: 80px auto; background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; border: 1px solid var(--border); }
-        .login-container h2 { margin-bottom: 20px; color: var(--primary); font-weight: 800; }
-        select, input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #f8fafc; border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; font-size: 0.95rem; outline: none; transition: 0.3s; }
-        select:focus, input:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        button.primary-btn { background: var(--primary); color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; margin-top: 10px; transition: 0.2s; }
-        button.primary-btn:hover { background: var(--primary-dark); }
-        .password-box { display: flex; align-items: center; gap: 8px; }
-        .password-box button { width: auto; margin: 0; padding: 12px 15px; background: #e2e8f0; color: var(--text-main); border-radius: 8px; border: none; font-size: 0.85rem; cursor: pointer;}
-        
-        /* Main Tabs */
-        .section-tab { display: none; animation: fadeIn 0.3s ease-in-out; }
-        .section-tab.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* HEADER BANNER */
-        .app-header { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 25px 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2); position: relative; }
-        .app-header p { font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px; font-weight: 500; }
-        .app-header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px; }
-        .app-header .sub-text { font-size: 0.85rem; margin-top: 5px; opacity: 0.9; }
-
-        /* DASHBOARD CARDS */
-        .top-add-btn { background: white; color: var(--primary); border: 2px dashed #bfdbfe; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 1rem; margin-bottom: 20px; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .top-add-btn:hover { background: #eff6ff; }
-        
-        .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .dash-card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid var(--border); display: flex; flex-direction: column; }
-        .dash-card .icon-box { width: 36px; height: 36px; background: #eff6ff; color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 12px; }
-        .dash-card p { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-        .dash-card h3 { color: var(--text-main); font-size: 1.6rem; font-weight: 800; }
-
-        /* REPORTS GRID */
-        .reports-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 25px; }
-        .report-card { background: var(--card-bg); border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid var(--border); border-bottom: 4px solid var(--border); }
-        .report-card.border-blue { border-bottom-color: var(--primary); }
-        .report-card.border-green { border-bottom-color: var(--green); }
-        .report-card.border-red { border-bottom-color: var(--red); }
-        .report-card .r-icon { font-size: 1.2rem; color: var(--primary); margin-bottom: 8px; }
-        .report-card p { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
-        .report-card h3 { font-size: 1.3rem; color: var(--text-main); font-weight: 800; }
-
-        /* LIST & CARDS */
-        .search-box { background: var(--card-bg); border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid var(--border); }
-        .search-box input { border: none; background: transparent; margin: 0; padding: 0; font-size: 0.95rem; width: 100%; box-shadow: none; outline: none; }
-        .search-box i { color: var(--text-muted); }
-
-        .person-card { background: var(--card-bg); border-radius: 16px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border: 1px solid var(--border); }
-        .person-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .person-info { display: flex; gap: 12px; align-items: center; }
-        .avatar { width: 45px; height: 45px; background: var(--primary); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; font-weight: bold; }
-        .person-info h3 { font-size: 1.1rem; color: var(--text-main); font-weight: 700; margin-bottom: 2px; }
-        .person-info p { font-size: 0.85rem; color: var(--text-muted); }
-        
-        .person-stats { display: flex; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 0; margin-bottom: 12px; }
-        .p-stat { flex: 1; text-align: center; border-right: 1px solid var(--border); }
-        .p-stat:last-child { border-right: none; }
-        .p-stat p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
-        .p-stat h4 { font-size: 1rem; color: var(--text-main); font-weight: 800; }
-        
-        .person-actions { display: flex; gap: 8px; }
-        .action-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; display: flex; justify-content: center; align-items: center; text-decoration: none; }
-        .btn-call { background: var(--primary); }
-        .btn-wa { background: #25D366; } 
-        .btn-view { background: var(--primary); }
-        .action-btn:hover { opacity: 0.9; }
-
-        /* MONTHLY ACCORDION (Income/Expense) */
-        .month-acc { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        .month-acc-header { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #f8fafc; font-weight: 700; color: var(--text-main); transition: 0.2s; }
-        .month-acc-header:hover { background: #f1f5f9; }
-        .month-acc-header .acc-title { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; }
-        .month-acc-header .acc-amt { color: var(--green); font-size: 1.1rem; }
-        .month-acc-header .acc-amt.red { color: var(--red); }
-        .month-acc-body { padding: 0 20px; display: none; border-top: 1px solid var(--border); }
-        .month-acc.open .month-acc-body { display: block; }
-        
-        .entry-row { padding: 15px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
-        .entry-row:last-child { border-bottom: none; }
-        .entry-desc h4 { font-size: 0.95rem; color: var(--text-main); font-weight: 700; margin-bottom: 4px; line-height: 1.3; }
-        .entry-desc p { font-size: 0.75rem; color: var(--text-muted); }
-        .entry-amt { font-size: 1rem; font-weight: 800; text-align: right; }
-        .entry-amt.green { color: var(--green); }
-        .entry-amt.red { color: var(--red); }
-
-        /* SETTINGS / MORE TAB */
-        .profile-card { background: var(--primary); color: white; padding: 25px; border-radius: 16px; display: flex; align-items: center; gap: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2); }
-        .profile-avatar { width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; }
-        .profile-info h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
-        .profile-info p { font-size: 0.85rem; opacity: 0.9; }
-
-        .settings-list { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-        .setting-item { padding: 18px 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; color: var(--text-main); text-decoration: none; }
-        .setting-item:hover { background: #f8fafc; }
-        .setting-item:last-child { border-bottom: none; }
-        .setting-icon { width: 40px; height: 40px; background: #eff6ff; color: var(--primary); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; }
-        .setting-text h4 { font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
-        .setting-text p { font-size: 0.75rem; color: var(--text-muted); }
-
-        /* FLOATING ADD BUTTON */
-        .fab { position: fixed; bottom: 90px; right: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); cursor: pointer; border: none; z-index: 100; transition: transform 0.2s; }
-        .fab:hover { transform: scale(1.05); }
-
-        /* BOTTOM NAVIGATION BAR */
-        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 1200px; background: var(--card-bg); display: flex; justify-content: space-around; padding: 12px 0 10px; border-top: 1px solid var(--border); z-index: 900; padding-bottom: calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 15px rgba(0,0,0,0.03); border-radius: 20px 20px 0 0; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; gap: 6px; flex: 1; transition: 0.3s; font-weight: 600; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item .nav-icon { font-size: 1.3rem; transition: 0.3s; padding: 8px; border-radius: 50%; }
-        .nav-item.active .nav-icon { background: #eff6ff; transform: translateY(-3px); }
-
-        /* DETAIL VIEW BANNER */
-        .detail-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 20px; overflow: hidden; }
-        .d-banner-top { background: var(--primary); padding: 25px 20px; color: white; text-align: center; }
-        .d-banner-top h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 4px; }
-        .d-banner-top p { font-size: 0.9rem; opacity: 0.9; }
-        .d-banner-stats { display: flex; padding: 15px; background: var(--card-bg); }
-        .d-banner-stats .d-stat { flex: 1; text-align: center; border-right: 1px solid var(--border); }
-        .d-banner-stats .d-stat:last-child { border-right: none; }
-        .d-banner-stats h4 { font-size: 1.1rem; color: var(--text-main); font-weight: 800; margin-bottom: 3px; }
-        .d-banner-stats p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-
-        /* WORK CARDS */
-        .w-card { border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 15px; background: #fff; position: relative; }
-        .w-header { margin-bottom: 10px; padding-right: 80px; }
-        .w-header h4 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
-        .w-header p { font-size: 0.75rem; color: var(--text-muted); }
-        .w-status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; background: #fef9c3; color: #b45309; margin-bottom: 10px; }
-        .w-status.delivered { background: #dcfce7; color: #15803d; }
-        .w-items { background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; border: 1px solid var(--border); }
-        .w-amounts { display: flex; background: #f8fafc; border-radius: 8px; padding: 10px; border: 1px solid var(--border); }
-        .w-amt-box { flex: 1; text-align: center; border-right: 1px solid var(--border); }
-        .w-amt-box:last-child { border-right: none; }
-        .w-amt-box p { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-bottom: 2px; }
-        .w-amt-box h5 { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
-        .w-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 6px; }
-        .w-btn { width: 32px; height: 32px; border-radius: 8px; border: none; display: flex; justify-content: center; align-items: center; cursor: pointer; color: white; font-size: 0.85rem; }
-        .btn-inv { background: #f59e0b; } .btn-edit { background: var(--primary); } .btn-del { background: var(--red); }
-
-        /* SHOWROOM GRID */
-        .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        .img-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .img-card img { width: 100%; height: 220px; object-fit: cover; }
-        .img-card-body { padding: 15px; }
-        .img-card-body h3 { font-size: 1.05rem; margin-bottom: 10px; color: var(--text-main); }
-
-        /* MODAL */
-        .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; padding: 15px; }
-        .modal-content { background: var(--card-bg); max-width: 500px; width: 100%; border-radius: 20px; padding: 25px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
-        
-        .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .payment-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .items-container { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .item-row { background: var(--card-bg); padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .item-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
-        
-        /* FIXED: HIDES THOSE UGLY FILE UPLOAD BUTTONS */
-        .hidden-file-input { display: none; }
-        
-        #loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); padding: 20px 30px; border-radius: 12px; color: #fff; z-index: 9999; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-
-        @media print {
-            @page { margin: 0; size: auto; } 
-            body { margin: 1cm; background: white; color: black; }
-            #appContainer, .bottom-nav, .modal { display: none !important; }
-            #invoicePrintArea { display: block !important; position: relative; width: 100%; height: auto; background: #fff; }
-            .inv-header { display: flex; justify-content: space-between; border-bottom: 4px solid var(--primary) !important; padding-bottom: 20px; margin-bottom: 25px; }
-            .inv-box { background: #f8fafc !important; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border) !important; page-break-inside: avoid; }
-            .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; }
-            .inv-table th { background: #eff6ff !important; border: 1px solid var(--border) !important; padding: 12px; text-align: left; }
-            .inv-table td { border: 1px solid var(--border) !important; padding: 12px; }
-        }
-    </style>
+        /* ==================== PRINTABLE INVOICE CSS ==================== */
+        #invoicePrintArea { display: none; background: #fff; color: #000; padding: 30px; font-family: 'Segoe UI', Arial, sans-serif; }
+        
+        @media print {
+            @page { margin: 0; size: auto; } 
+            body { margin: 1cm; background: white; color: black; }
+            body > * { display: none !important; }
+            #invoicePrintArea { display: block !important; position: relative; width: 100%; height: auto; background: #fff; page-break-inside: auto; }
+            
+            .inv-header { display: flex; justify-content: space-between; border-bottom: 4px solid var(--blue) !important; padding-bottom: 20px; margin-bottom: 25px; }
+            .inv-logo-box { background: var(--blue) !important; color: #fff !important; font-size: 32px; font-weight: 900; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .inv-title { font-size: 28px; font-weight: 900; color: var(--blue) !important; margin-bottom: 5px; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+            
+            .inv-box { background: #f8fafc !important; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-inside: avoid; }
+            .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px; page-break-inside: auto; }
+            .inv-table tr { page-break-inside: avoid; page-break-after: auto; }
+            .inv-table th { background: #eff6ff !important; color: #1e3a8a !important; border: 1px solid #cbd5e1 !important; padding: 12px; text-align: left; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .inv-table td { border: 1px solid #cbd5e1 !important; padding: 12px; color: #334155; }
+            
+            .inv-summary-row { background: #eff6ff !important; font-weight: bold; font-size: 16px; color: #1e3a8a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .inv-footer-msg { margin-top:30px; border-top: 1px solid #cbd5e1; padding-top: 15px; font-size: 13px; color: #64748b; text-align:center; page-break-inside: avoid; }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
 </head>
 <body>
 
-    <div id="loader"><i class="fas fa-spinner fa-spin"></i> Kripya Pratiksha Karein...</div>
-    <div id="invoicePrintArea"></div>
-
-    <div id="appContainer">
-        <!-- LOGIN PAGE -->
-        <div id="loginPage" class="login-container">
-            <h2>Chakradhari Traders</h2>
-            <p style="color: var(--text-muted); margin-bottom: 15px;">Welcome! Kripya apna role chunein:</p>
-            <select id="userRole" onchange="toggleRoleFields()">
-                <option value="customer">Customer</option>
-                <option value="owner">Owner</option>
-            </select>
-            <div id="phoneField"><input type="number" id="loginPhone" placeholder="Apna Mobile Number Daalein"></div>
-            <div id="passField" style="display: none;">
-                <div class="password-box">
-                    <input type="password" id="loginPass" placeholder="Owner Firebase Password">
-                    <button type="button" onclick="togglePassView()"><i class="fas fa-eye"></i></button>
-                </div>
-            </div>
-            <button class="primary-btn" onclick="handleLogin()">Login System</button>
-        </div>
-
-        <!-- 1. HOME DASHBOARD TAB -->
-        <div id="tabHome" class="section-tab">
-            <div class="app-header">
-                <p>Current Business</p>
-                <h1>Chakradhari Traders</h1>
-                <div class="sub-text">Metal Fabrication</div>
-            </div>
-
-            <button class="top-add-btn" onclick="openWorkModalForNewPerson()"><i class="fas fa-plus"></i> Add New Business Entry</button>
-
-            <div class="dash-grid-2">
-                <div class="dash-card">
-                    <div class="icon-box"><i class="fas fa-wallet"></i></div>
-                    <p>Outstanding</p>
-                    <h3 id="dashOutstanding">₹0</h3>
-                </div>
-                <div class="dash-card">
-                    <div class="icon-box"><i class="fas fa-money-bill-wave"></i></div>
-                    <p>Today's Income</p>
-                    <h3 id="dashTodayInc">₹0</h3>
-                </div>
-                <div class="dash-card">
-                    <div class="icon-box"><i class="fas fa-chart-line"></i></div>
-                    <p>Monthly Income</p>
-                    <h3 id="dashMonthInc">₹0</h3>
-                </div>
-                <div class="dash-card">
-                    <div class="icon-box"><i class="fas fa-receipt"></i></div>
-                    <p>Monthly Expense</p>
-                    <h3 id="dashMonthExp">₹0</h3>
-                </div>
-            </div>
-
-            <!-- Month Selection & Graph -->
-            <div style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4 style="font-size: 1.1rem; font-weight: 700;">Income vs Expense</h4>
-                    <select id="dashMonthFilter" onchange="updateDashboardAndChart()" style="width: auto; margin: 0; padding: 8px 12px; font-weight: 600; background: #f8fafc; border-color: var(--border);"></select>
-                </div>
-                <div style="position: relative; height: 250px; width: 100%;">
-                    <canvas id="businessChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. CUSTOMERS TAB -->
-        <div id="tabCustomers" class="section-tab">
-            <div id="customerListView">
-                <div class="app-header" style="padding: 15px 20px; margin-bottom: 15px;">
-                    <h1 style="font-size: 1.4rem;">Customers</h1>
-                    <p>Chakradhari Traders</p>
-                </div>
-                
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchCustomer" placeholder="Search by Name or Mobile..." onkeyup="loadCustomersUI()">
-                </div>
-
-                <div class="dash-grid-2" style="margin-bottom: 20px;">
-                    <div class="report-card"><p>Customers</p><h3 id="topCustCount">0</h3></div>
-                    <div class="report-card"><p>Outstanding</p><h3 id="topCustOut">₹0</h3></div>
-                    <div class="report-card"><p>Received</p><h3 id="topCustRec">₹0</h3></div>
-                    <div class="report-card"><p>Works</p><h3 id="topCustWorks">0</h3></div>
-                </div>
-
-                <div id="customersContainer"></div>
-            </div>
-
-            <!-- Customer Detail View -->
-            <div id="customerDetailView" style="display:none;">
-                <button class="top-add-btn" onclick="closeDetailView()" style="background: white; color: var(--text-main); border-color: var(--border);">
-                    <i class="fas fa-arrow-left"></i> Back to Customers
-                </button>
-                <div class="detail-card">
-                    <div class="d-banner-top">
-                        <p>Total Outstanding</p>
-                        <h2 id="custDetailOutstandingAmt">₹0</h2>
-                    </div>
-                    <div class="d-banner-stats">
-                        <div class="d-stat"><p>Business</p><h4 id="custDetailBusinessAmt">₹0</h4></div>
-                        <div class="d-stat"><p>Received</p><h4 id="custDetailReceivedAmt">₹0</h4></div>
-                        <div class="d-stat"><p>Entries</p><h4 id="custDetailWorksCount">0</h4></div>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="font-size: 1.2rem; font-weight: 700;" id="custDetailPersonNameTitle">Works</h3>
-                </div>
-                <div id="custWorksCardsContainer"></div>
-                <button class="fab" onclick="openWorkModalForPerson('customer')" title="Add Work"><i class="fas fa-plus"></i></button>
-            </div>
-        </div>
-
-        <!-- 3. EXPENSE TAB -->
-        <div id="tabExpense" class="section-tab">
-            <div class="app-header" style="padding: 15px 20px; margin-bottom: 15px;">
-                <h1 style="font-size: 1.4rem;">Expenses</h1>
-                <p>Manage Business Expenses & Suppliers</p>
-            </div>
-
-            <div class="dash-grid-2">
-                <div class="dash-card" style="background: var(--primary); color: white; border: none;">
-                    <p style="color: #bfdbfe;">Total Expense</p>
-                    <h3 style="color: white;" id="expTotalAmt">₹0</h3>
-                </div>
-                <div class="dash-card" style="background: var(--primary); color: white; border: none;">
-                    <p style="color: #bfdbfe;">This Month</p>
-                    <h3 style="color: white;" id="expMonthAmt">₹0</h3>
-                </div>
-            </div>
-            
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchExpense" placeholder="Search Expense or Supplier..." onkeyup="loadExpensesUI()">
-            </div>
-            
-            <button class="primary-btn" onclick="openWorkModalForNewExpense()" style="margin-top:0; margin-bottom: 20px;"><i class="fas fa-plus"></i> Add Expense</button>
-
-            <div id="monthlyExpensesContainer"></div>
-        </div>
-
-        <!-- 4. REPORTS TAB -->
-        <div id="tabReports" class="section-tab">
-            <div class="app-header" style="padding: 15px 20px; margin-bottom: 20px;">
-                <h1 style="font-size: 1.4rem;">Business Reports</h1>
-                <p>Analytics & Financial Summary</p>
-            </div>
-
-            <div class="reports-grid">
-                <div class="report-card border-blue"><i class="fas fa-users r-icon"></i><p>Customers</p><h3 id="repCust">0</h3></div>
-                <div class="report-card border-blue"><i class="fas fa-briefcase r-icon"></i><p>Total Works</p><h3 id="repWorks">0</h3></div>
-                <div class="report-card border-blue"><i class="fas fa-spinner r-icon"></i><p>Active Works</p><h3 id="repActive">0</h3></div>
-                <div class="report-card border-blue"><i class="fas fa-check-circle r-icon"></i><p>Completed</p><h3 id="repComp">0</h3></div>
-                
-                <div class="report-card border-red"><i class="fas fa-ban r-icon" style="color:var(--red);"></i><p>Cancelled</p><h3 id="repCanc">0</h3></div>
-                <div class="report-card border-blue"><i class="fas fa-wallet r-icon"></i><p>Outstanding</p><h3 id="repOut">₹0</h3></div>
-                <div class="report-card border-green"><i class="fas fa-money-bill r-icon" style="color:var(--green);"></i><p>Today's Income</p><h3 id="repTodayInc">₹0</h3></div>
-                <div class="report-card border-green"><i class="fas fa-arrow-trend-up r-icon" style="color:var(--green);"></i><p>Monthly Income</p><h3 id="repMonthInc">₹0</h3></div>
-                
-                <div class="report-card border-red"><i class="fas fa-arrow-trend-down r-icon" style="color:var(--red);"></i><p>Monthly Expense</p><h3 id="repMonthExp">₹0</h3></div>
-                <div class="report-card border-green"><i class="fas fa-sack-dollar r-icon" style="color:var(--green);"></i><p>Total Income</p><h3 id="repTotInc">₹0</h3></div>
-                <div class="report-card border-red"><i class="fas fa-file-invoice-dollar r-icon" style="color:var(--red);"></i><p>Total Expense</p><h3 id="repTotExp">₹0</h3></div>
-                <div class="report-card border-blue"><i class="fas fa-chart-pie r-icon"></i><p>Net Profit</p><h3 id="repProfit">₹0</h3></div>
-            </div>
-
-            <div style="background: var(--card-bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="font-size: 1.1rem; font-weight: 700;">Month Wise Income</h3>
-                    <select id="repMonthFilter" onchange="loadReportsUI()" style="width: auto; margin: 0; padding: 6px 10px;"></select>
-                </div>
-                <div id="reportIncomeList"></div>
-            </div>
-        </div>
-
-        <!-- 5. MORE / SETTINGS TAB -->
-        <div id="tabMore" class="section-tab">
-            <div class="profile-card">
-                <div class="profile-avatar"><i class="fas fa-user"></i></div>
-                <div class="profile-info">
-                    <h2>Aditya Raj</h2>
-                    <p>Chakradhari Traders<br>Metal Fabrication</p>
-                </div>
-            </div>
-
-            <div class="settings-list">
-                <div class="setting-item" onclick="openShowroom()">
-                    <div class="setting-icon"><i class="fas fa-image"></i></div>
-                    <div class="setting-text"><h4>Design Showroom</h4><p>Manage categories & photos</p></div>
-                </div>
-                <a href="#" class="setting-item">
-                    <div class="setting-icon"><i class="fas fa-user-edit"></i></div>
-                    <div class="setting-text"><h4>Edit Profile</h4><p>Update personal info (Coming Soon)</p></div>
-                </a>
-                <a href="#" class="setting-item">
-                    <div class="setting-icon"><i class="fas fa-building"></i></div>
-                    <div class="setting-text"><h4>Business Details</h4><p>Edit business info (Coming Soon)</p></div>
-                </a>
-                <a href="#" class="setting-item" id="navLogsBtn2" style="display:none;" onclick="document.getElementById('logsModal').style.display='flex'">
-                    <div class="setting-icon"><i class="fas fa-mobile-alt"></i></div>
-                    <div class="setting-text"><h4>Login Logs</h4><p>View customer logins</p></div>
-                </a>
-                <div class="setting-item" onclick="logout()">
-                    <div class="setting-icon" style="background:#fef2f2; color:var(--red);"><i class="fas fa-sign-out-alt"></i></div>
-                    <div class="setting-text"><h4 style="color:var(--red);">Log Out</h4><p>Exit system securely</p></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SHOWROOM VIEW -->
-        <div id="showroomView" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:950; overflow-y:auto; padding:15px; padding-bottom:90px;">
-            <div class="app-header" style="display:flex; justify-content:space-between; align-items:center;">
-                <div><h1 style="font-size: 1.4rem;">Showroom</h1><p>Manage Designs</p></div>
-                <button onclick="closeShowroom()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer;"><i class="fas fa-times"></i> Close</button>
-            </div>
-            <div style="background:var(--card-bg); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid var(--border);">
-                <select id="itemFilter" onchange="loadImagesUI()" style="margin-bottom:10px;"></select>
-                <div style="display:flex; gap:10px;">
-                    <button class="primary-btn" onclick="addNewCategory()" style="margin:0;"><i class="fas fa-plus"></i> Category</button>
-                    <button class="primary-btn" onclick="renameCurrentCategory()" style="margin:0; background:#f59e0b;"><i class="fas fa-edit"></i></button>
-                    <button class="primary-btn" onclick="deleteCurrentCategory()" style="margin:0; background:var(--red);"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-            <div class="image-grid" id="imageGrid"></div>
-        </div>
-
-        <!-- LOGS MODAL -->
-        <div id="logsModal" class="modal">
-            <div class="modal-content">
-                <span class="modal-close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
-                <h3 style="color: var(--primary); margin-bottom: 15px;">📱 Customer Login Logs</h3>
-                <div id="logDisplay" style="max-height: 400px; overflow-y: auto;"></div>
-            </div>
-        </div>
-
-        <!-- BOTTOM NAVIGATION BAR -->
-        <nav class="bottom-nav" id="bottomNavBar" style="display: none;">
-            <div class="nav-item active" onclick="switchMainTab('tabHome', this)">
-                <div class="nav-icon"><i class="fas fa-home"></i></div><span>Home</span>
-            </div>
-            <div class="nav-item" onclick="switchMainTab('tabCustomers', this)">
-                <div class="nav-icon"><i class="fas fa-users"></i></div><span>Customers</span>
-            </div>
-            <div class="nav-item" onclick="switchMainTab('tabExpense', this)">
-                <div class="nav-icon"><i class="fas fa-wallet"></i></div><span>Expense</span>
-            </div>
-            <div class="nav-item" onclick="switchMainTab('tabReports', this)">
-                <div class="nav-icon"><i class="fas fa-chart-pie"></i></div><span>Reports</span>
-            </div>
-            <div class="nav-item" onclick="switchMainTab('tabMore', this)">
-                <div class="nav-icon"><i class="fas fa-cog"></i></div><span>More</span>
-            </div>
-        </nav>
-    </div>
-
-    <!-- MAIN WORK ENTRY MODAL -->
-    <div id="workModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeWorkModal()">&times;</span>
-            <h3 id="workModalTitle" style="color: var(--primary); font-weight:800; margin-bottom: 15px;">Naya Kaam / Kharcha</h3>
-            <input type="hidden" id="editEntryId" value="">
-            
-            <label style="font-size: 0.85rem; color: var(--text-muted); font-weight:600;">Khata Type:</label>
-            <select id="khataType" onchange="toggleKhataFields()">
-                <option value="customer">Customer (Grahak)</option>
-                <option value="supplier">Supplier (Samaan Wala)</option>
-                <option value="expense">Expense (Dukaan ka Kharcha)</option>
-            </select>
-
-            <div id="personDetailsForm">
-                <input type="text" id="kName" placeholder="Name (e.g., Rohit Kumar)">
-                <input type="number" id="kPhone" placeholder="Mobile Number">
-                <input type="text" id="kAddress" placeholder="Address">
-            </div>
-
-            <label style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; display: block; font-weight:600;">Title (Short Name):</label>
-            <input type="text" id="kWorkTitle" placeholder="e.g., Ghar ka Gate / Chai Kharcha">
-
-            <div class="calc-row">
-                <input type="text" id="kCategory" placeholder="Category">
-                <select id="kStatus">
-                    <option value="Delivered">🟢 Done / Delivered</option>
-                    <option value="In Progress">🟡 In Progress</option>
-                    <option value="Pending">🔴 Pending</option>
-                </select>
-            </div>
-
-            <label style="font-size: 0.95rem; color: var(--text-main); margin-top: 15px; display: block; font-weight:700;">Items Details:</label>
-            <div class="items-container" id="workItemsList"></div>
-            <button type="button" onclick="addWorkItemRow()" class="top-add-btn" style="padding:8px; margin-bottom:15px; font-size:0.9rem;">+ Add Item</button>
-
-            <label style="font-size: 0.85rem; color: var(--text-muted); font-weight:600;">Extra Charges:</label>
-            <div class="charges-grid">
-                <input type="number" id="kLabour" placeholder="Labour (Rs)" oninput="calcWorkTotal()">
-                <input type="number" id="kTransport" placeholder="Transport (Rs)" oninput="calcWorkTotal()">
-                <input type="number" id="kInstallation" placeholder="Install (Rs)" oninput="calcWorkTotal()">
-                <input type="number" id="kOther" placeholder="Other (Rs)" oninput="calcWorkTotal()">
-            </div>
-            
-            <input type="number" id="kDiscount" placeholder="Discount (-)" oninput="calcWorkTotal()" style="margin-top:10px;">
-
-            <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 15px; display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: bold; border: 1px solid #bfdbfe; color: var(--primary-dark);">
-                <span>Grand Total:</span><span>₹<span id="kGrandTotalLabel">0.00</span></span>
-            </div>
-            <input type="hidden" id="kTotal" value="0">
-
-            <label id="paymentLabelText" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 20px; display: block; font-weight:600;">Payment Details:</label>
-            <div class="payment-row">
-                <input type="date" id="kDate1"><input type="number" id="kPay1" placeholder="1st Amt">
-                <select id="kPayMode1" style="margin:0;"><option value="">Mode</option><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank">Bank</option></select>
-            </div>
-            <div class="payment-row">
-                <input type="date" id="kDate2"><input type="number" id="kPay2" placeholder="2nd Amt">
-                <select id="kPayMode2" style="margin:0;"><option value="">Mode</option><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank">Bank</option></select>
-            </div>
-            <div class="payment-row">
-                <input type="date" id="kDate3"><input type="number" id="kPay3" placeholder="3rd Amt">
-                <select id="kPayMode3" style="margin:0;"><option value="">Mode</option><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Bank">Bank</option></select>
-            </div>
-
-            <textarea id="kNote" placeholder="Notes..."></textarea>
-            <button class="primary-btn" onclick="saveWorkEntry()" style="background: var(--green);">✅ Save Entry</button>
-        </div>
-    </div>
-
-    <!-- Image Modal -->
-    <div id="myModal" class="modal">
-        <span class="modal-close" onclick="closeModal()">&times;</span>
-        <img class="modal-content" id="imgModalTarget" style="max-height: 80vh; object-fit: contain; padding:0; border:none; background:transparent;">
-    </div>
-
-    <!-- HIDDEN FILE INPUTS (FIXED: Now they are safely hidden!) -->
-    <input type="file" id="replaceFileInput" class="hidden-file-input" accept="image/*" onchange="handleImageFileChange(event)">
-    <input type="file" id="addFileInput" class="hidden-file-input" accept="image/*" onchange="handleAddImageFileChange(event)">
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDYuJJ1jbWF-NELI-B8BikkkVqdhMmklYw",
-            authDomain: "chakradhari-traders.firebaseapp.com",
-            databaseURL: "https://chakradhari-traders-default-rtdb.firebaseio.com",
-            projectId: "chakradhari-traders",
-            storageBucket: "chakradhari-traders.firebasestorage.app",
-            messagingSenderId: "444707223808",
-            appId: "1:444707223808:web:629ad531aeb3b94074dbe5"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const auth = firebase.auth(); 
-        const storage = firebase.storage(); 
-
-        let loggedInRole = 'customer';
-        let cloudImagesData = {};
-        let cloudCategories = [];
-        let cloudKhataData = [];
-        let cloudLogsData = [];
-        let currentActivePersonKey = null;
-        let currentReplacingKey = '';
-        let currentReplacingIndex = -1;
-        let currentAddingKey = '';
-        let myChart = null; 
-
-        const escapeHTML = (str) => {
-            if (str === null || str === undefined) return '';
-            return String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
-        };
-
-        const getMonthName = (YYYYMM) => {
-            if(!YYYYMM) return "Unknown";
-            const date = new Date(YYYYMM + "-01");
-            return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-        };
-
-        // UI SWITCHING
-        function switchMainTab(tabId, element) {
-            document.querySelectorAll('.section-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            if(element) element.classList.add('active');
-
-            if(tabId === 'tabHome') updateDashboardAndChart();
-            if(tabId === 'tabCustomers') loadCustomersUI();
-            if(tabId === 'tabExpense') loadExpensesUI();
-            if(tabId === 'tabReports') loadReportsUI();
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // FIREBASE LISTENERS
-        db.ref('customShowroomImages').on('value', (snapshot) => {
-            cloudImagesData = snapshot.val() || {};
-            db.ref('showroomCategories').once('value', (catSnap) => {
-                let savedCats = catSnap.val() || [];
-                let allKeys = Object.keys(cloudImagesData);
-                let merged = Array.from(new Set([...savedCats, ...allKeys]));
-                if(merged.length === 0) merged = ["Gate Design", "Window"];
-                cloudCategories = merged;
-                updateCategoryDropdown();
-                loadImagesUI();
-            });
-        });
-
-        db.ref('shopKhata').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            cloudKhataData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-            if(loggedInRole === 'owner') {
-                updateDashboardAndChart(); 
-                loadCustomersUI();
-                loadExpensesUI();
-                loadReportsUI();
-                if(currentActivePersonKey) renderPersonDetailView(currentActivePersonKey);
-            }
-        });
-
-        db.ref('siteLogs').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            cloudLogsData = Object.keys(data).map(key => data[key]);
-            if(loggedInRole === 'owner') loadLogsUI();
-        });
-
-        window.onload = function() {
-            let isLogged = localStorage.getItem('isOwnerLoggedIn');
-            let sessionTime = localStorage.getItem('ownerSessionExpire');
-            if(isLogged === 'true' && sessionTime && Date.now() < parseInt(sessionTime)) {
-                enableOwnerUI();
-            } else {
-                logout(); 
-            }
-        };
-
-        function enableOwnerUI() {
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('bottomNavBar').style.display = 'flex'; 
-            document.getElementById('navLogsBtn2').style.display = 'flex'; 
-            loggedInRole = 'owner';
-            updateCategoryDropdown();
-            loadImagesUI();
-            document.querySelector('.nav-item').click(); // Go to Home
-            loadLogsUI();
-        }
-
-        function toggleRoleFields() {
-            const role = document.getElementById('userRole').value;
-            document.getElementById('phoneField').style.display = (role === 'owner') ? 'none' : 'block';
-            document.getElementById('passField').style.display = (role === 'owner') ? 'block' : 'none';
-        }
-
-        function togglePassView() {
-            const passInput = document.getElementById('loginPass');
-            passInput.type = (passInput.type === 'password') ? 'text' : 'password';
-        }
-
-        function handleLogin() {
-            const role = document.getElementById('userRole').value;
-            loggedInRole = role;
-
-            if (role === 'owner') {
-                const pass = document.getElementById('loginPass').value;
-                document.getElementById('loader').style.display = 'block';
-                
-                auth.signInWithEmailAndPassword('chakradhari2026@gmail.com', pass)
-                .then(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    localStorage.setItem('isOwnerLoggedIn', 'true');
-                    localStorage.setItem('ownerSessionExpire', Date.now() + 3600000);
-                    enableOwnerUI();
-                })
-                .catch((error) => {
-                    document.getElementById('loader').style.display = 'none';
-                    if(pass === 'Aditya930@') {
-                        localStorage.setItem('isOwnerLoggedIn', 'true');
-                        localStorage.setItem('ownerSessionExpire', Date.now() + 3600000);
-                        enableOwnerUI();
-                    } else { alert("Error: " + error.message); }
-                });
-            } else {
-                const phone = document.getElementById('loginPhone').value;
-                if (phone.length >= 10) {
-                    db.ref('siteLogs').push({ phone: escapeHTML(phone), role: role, time: new Date().toLocaleString() });
-                    document.getElementById('loginPage').style.display = 'none';
-                    document.getElementById('bottomNavBar').style.display = 'none'; 
-                    openShowroom(); // For customer, open showroom directly
-                } else { alert("Kripya sahi 10 digit ka phone number dalein."); }
-            }
-        }
-
-        /* ==================== 1. HOME DASHBOARD ==================== */
-        function updateDashboardAndChart() {
-            const monthSel = document.getElementById('dashMonthFilter');
-            let monthsSet = new Set();
-            const currentMonthStr = new Date().toISOString().substring(0, 7);
-            monthsSet.add(currentMonthStr);
-
-            cloudKhataData.forEach(w => {
-                if(w.date1) monthsSet.add(w.date1.substring(0,7));
-                if(w.date2) monthsSet.add(w.date2.substring(0,7));
-                if(w.date3) monthsSet.add(w.date3.substring(0,7));
-                if(w.entryDate) monthsSet.add(w.entryDate.substring(0,7));
-            });
-
-            let sortedMonths = Array.from(monthsSet).sort().reverse();
-            if (monthSel.options.length !== sortedMonths.length) {
-                let currentVal = monthSel.value || currentMonthStr;
-                monthSel.innerHTML = '';
-                sortedMonths.forEach(m => { monthSel.appendChild(new Option(getMonthName(m), m)); });
-                if(sortedMonths.includes(currentVal)) monthSel.value = currentVal;
-                else monthSel.value = sortedMonths[0];
-            }
-
-            let selectedMonth = monthSel.value; 
-            let daysInMonth = new Date(selectedMonth.split('-')[0], selectedMonth.split('-')[1], 0).getDate();
-
-            let monthIncome = 0; let monthExpense = 0; let totalUdhari = 0; 
-            let dailyIncome = new Array(daysInMonth).fill(0);
-            let dailyExpense = new Array(daysInMonth).fill(0);
-            let labels = Array.from({length: daysInMonth}, (_, i) => i + 1);
-
-            cloudKhataData.forEach(w => {
-                let biz = parseFloat(w.total) || 0;
-                let rcv = 0;
-
-                const processPay = (d, p) => {
-                    if(!d || !p) return;
-                    rcv += p;
-                    let m = d.substring(0, 7);
-                    let day = parseInt(d.substring(8, 10)) - 1;
-
-                    if (m === selectedMonth) {
-                        if (w.type === 'supplier' || w.type === 'expense') {
-                            monthExpense += p;
-                            if(day >= 0 && day < daysInMonth) dailyExpense[day] += p;
-                        } else {
-                            monthIncome += p;
-                            if(day >= 0 && day < daysInMonth) dailyIncome[day] += p;
-                        }
-                    }
-                };
-
-                processPay(w.date1, parseFloat(w.pay1));
-                processPay(w.date2, parseFloat(w.pay2));
-                processPay(w.date3, parseFloat(w.pay3));
-
-                if (w.type === 'customer') {
-                    let pend = biz - rcv;
-                    if(pend > 0) totalUdhari += pend;
-                }
-            });
-
-            let todayInc = 0;
-            const todayStr = new Date().toISOString().split('T')[0];
-            cloudKhataData.forEach(w => {
-                if(w.type === 'customer') {
-                    if(w.date1 === todayStr) todayInc += parseFloat(w.pay1)||0;
-                    if(w.date2 === todayStr) todayInc += parseFloat(w.pay2)||0;
-                    if(w.date3 === todayStr) todayInc += parseFloat(w.pay3)||0;
-                }
-            });
-
-            document.getElementById('dashOutstanding').innerText = `₹${totalUdhari.toFixed(0)}`;
-            document.getElementById('dashTodayInc').innerText = `₹${todayInc.toFixed(0)}`;
-            document.getElementById('dashMonthInc').innerText = `₹${monthIncome.toFixed(0)}`;
-            document.getElementById('dashMonthExp').innerText = `₹${monthExpense.toFixed(0)}`;
-
-            const ctx = document.getElementById('businessChart').getContext('2d');
-            if(myChart) myChart.destroy();
-            
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Income (₹)', data: dailyIncome, backgroundColor: '#3b82f6', borderRadius: 4 },
-                        { label: 'Expense (₹)', data: dailyExpense, backgroundColor: '#ef4444', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } }, x: { grid: { display: false } } },
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
-        }
-
-        /* ==================== 2. CUSTOMERS TAB ==================== */
-        function loadCustomersUI() {
-            document.getElementById('customerDetailView').style.display = 'none';
-            document.getElementById('customerListView').style.display = 'block';
-            const container = document.getElementById('customersContainer');
-            container.innerHTML = '';
-            
-            const sq = document.getElementById('searchCustomer').value.toLowerCase().trim();
-            const grouped = {};
-            let tCust = 0, tOut = 0, tRcv = 0, tWorks = 0;
-
-            cloudKhataData.forEach(e => {
-                if(e.type !== 'customer') return; 
-                
-                const cleanName = (e.name || 'Unknown').trim().toLowerCase();
-                const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
-                const key = cleanName + '_' + cleanPhone;
-                
-                if(!grouped[key]) {
-                    grouped[key] = { key: key, name: e.name || 'Unknown', phone: e.phone || '', type: 'customer', totalBusiness: 0, totalReceived: 0, worksCount: 0 };
-                    tCust++;
-                }
-                let biz = parseFloat(e.total) || 0;
-                let rcv = (parseFloat(e.pay1)||0) + (parseFloat(e.pay2)||0) + (parseFloat(e.pay3)||0);
-                grouped[key].totalBusiness += biz;
-                grouped[key].totalReceived += rcv;
-                grouped[key].worksCount += 1;
-                
-                tRcv += rcv;
-                tWorks++;
-                if(biz - rcv > 0) tOut += (biz - rcv);
-            });
-
-            document.getElementById('topCustCount').innerText = tCust;
-            document.getElementById('topCustOut').innerText = `₹${tOut.toFixed(0)}`;
-            document.getElementById('topCustRec').innerText = `₹${tRcv.toFixed(0)}`;
-            document.getElementById('topCustWorks').innerText = tWorks;
-
-            let list = Object.values(grouped);
-            if(sq !== '') list = list.filter(p => p.name.toLowerCase().includes(sq) || (p.phone && p.phone.includes(sq)));
-            list.sort((a, b) => a.name.localeCompare(b.name));
-
-            if(list.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px; color:var(--text-muted);">No Customer Found.</p>`; return; }
-
-            list.forEach(p => {
-                let outst = (p.totalBusiness - p.totalReceived).toFixed(2);
-                let initial = p.name.charAt(0).toUpperCase();
-                let waLink = p.phone ? `https://wa.me/91${p.phone.replace(/\D/g, '')}` : '#';
-                
-                container.innerHTML += `
-                    <div class="person-card">
-                        <div class="person-header">
-                            <div class="person-info">
-                                <div class="avatar">${escapeHTML(initial)}</div>
-                                <div><h3>${escapeHTML(p.name)}</h3><p>📞 ${escapeHTML(p.phone) || 'N/A'}</p></div>
-                            </div>
-                            <button onclick="openPersonDetail('${p.key}')" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer;"><i class="fas fa-ellipsis-v"></i></button>
-                        </div>
-                        <div class="person-stats">
-                            <div class="p-stat"><p>Outstanding</p><h4 style="color:var(--primary);">₹${outst}</h4></div>
-                            <div class="p-stat"><p>Works</p><h4>${p.worksCount}</h4></div>
-                        </div>
-                        <div class="person-actions">
-                            <a href="tel:${escapeHTML(p.phone)}" class="action-btn btn-call"><i class="fas fa-phone-alt"></i></a>
-                            <a href="${waLink}" target="_blank" class="action-btn btn-wa"><i class="fab fa-whatsapp"></i></a>
-                            <button onclick="openPersonDetail('${p.key}')" class="action-btn btn-view"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        /* ==================== 3. EXPENSE TAB ==================== */
-        function loadExpensesUI() {
-            const container = document.getElementById('monthlyExpensesContainer');
-            container.innerHTML = '';
-            const sq = document.getElementById('searchExpense').value.toLowerCase().trim();
-            let allTimeExp = 0, thisMonthExp = 0;
-            const currentMonthStr = new Date().toISOString().substring(0, 7);
-            
-            const groupedByMonth = {};
-            let sortedData = [...cloudKhataData].sort((a, b) => new Date(b.entryDate || 0) - new Date(a.entryDate || 0));
-
-            sortedData.forEach(w => {
-                if(w.type !== 'supplier' && w.type !== 'expense') return; 
-                let searchStr = (w.name + w.workTitle + w.category + w.item).toLowerCase();
-                if(sq !== '' && !searchStr.includes(sq)) return;
-
-                let rcvAmt = (parseFloat(w.pay1)||0) + (parseFloat(w.pay2)||0) + (parseFloat(w.pay3)||0);
-                allTimeExp += rcvAmt;
-                
-                let monthKey = w.entryDate ? w.entryDate.substring(0, 7) : 'Unknown';
-                if(monthKey === currentMonthStr) thisMonthExp += rcvAmt;
-
-                if(!groupedByMonth[monthKey]) groupedByMonth[monthKey] = { total: 0, entries: [] };
-                groupedByMonth[monthKey].total += rcvAmt;
-                groupedByMonth[monthKey].entries.push(w);
-            });
-
-            document.getElementById('expTotalAmt').innerText = `₹${allTimeExp.toFixed(0)}`;
-            document.getElementById('expMonthAmt').innerText = `₹${thisMonthExp.toFixed(0)}`;
-
-            let sortedMonths = Object.keys(groupedByMonth).sort().reverse(); 
-            if(sortedMonths.length === 0) { container.innerHTML = `<p style="text-align:center; padding:20px;">No Expenses Found.</p>`; return; }
-
-            sortedMonths.forEach((mKey, index) => {
-                let monthData = groupedByMonth[mKey];
-                let mName = getMonthName(mKey);
-                let isOpen = index === 0 ? 'open' : ''; 
-                
-                let entriesHtml = monthData.entries.map(w => {
-                    let rcvAmt = (parseFloat(w.pay1)||0) + (parseFloat(w.pay2)||0) + (parseFloat(w.pay3)||0);
-                    let title = w.type === 'expense' ? (w.workTitle || 'General Expense') : (w.name + " (" + w.type + ")");
-                    let modeStr = (w.payMode1 || w.payMode2 || w.payMode3 || 'Cash');
-
-                    return `
-                    <div class="entry-row">
-                        <div class="entry-desc" style="flex:1;">
-                            <h4>${escapeHTML(title)}</h4>
-                            <p>${escapeHTML(modeStr)} &bull; ${escapeHTML(w.entryDate || '-')}</p>
-                        </div>
-                        <div class="entry-amt red">-₹${rcvAmt.toFixed(0)}</div>
-                        <button onclick="editWorkEntry('${w.id}')" style="background:transparent; border:none; color:var(--primary); padding-left:10px; cursor:pointer;"><i class="fas fa-edit"></i></button>
-                    </div>`;
-                }).join('');
-
-                container.innerHTML += `
-                    <div class="month-acc ${isOpen}">
-                        <div class="month-acc-header" onclick="this.parentElement.classList.toggle('open')">
-                            <div class="acc-title"><i class="fas fa-chevron-down" style="font-size:0.8rem;"></i> ${mName}</div>
-                            <span class="acc-amt red">₹${monthData.total.toFixed(0)}</span>
-                        </div>
-                        <div class="month-acc-body">${entriesHtml}</div>
-                    </div>`;
-            });
-        }
-
-        /* ==================== 4. REPORTS TAB ==================== */
-        function loadReportsUI() {
-            let tCust=0, tWorks=0, tActive=0, tComp=0, tCanc=0;
-            let tOut=0, todayInc=0, mInc=0, mExp=0, tInc=0, tExp=0;
-            
-            const todayStr = new Date().toISOString().split('T')[0];
-            const curMonth = todayStr.substring(0, 7);
-            
-            let custSet = new Set();
-            let incByMonth = {};
-
-            cloudKhataData.forEach(w => {
-                let biz = parseFloat(w.total) || 0;
-                let p1 = parseFloat(w.pay1)||0, p2 = parseFloat(w.pay2)||0, p3 = parseFloat(w.pay3)||0;
-                let rcv = p1 + p2 + p3;
-                let pend = biz - rcv;
-
-                tWorks++;
-                if(w.status === 'Delivered' || pend <= 0) tComp++;
-                else if(w.status === 'Pending' || w.status === 'In Progress') tActive++;
-
-                const trackPay = (d, amt) => {
-                    if(!d || !amt) return;
-                    let m = d.substring(0,7);
-                    if(w.type === 'supplier' || w.type === 'expense') {
-                        tExp += amt;
-                        if(m === curMonth) mExp += amt;
-                    } else {
-                        tInc += amt;
-                        if(d === todayStr) todayInc += amt;
-                        if(m === curMonth) mInc += amt;
-                        
-                        if(!incByMonth[m]) incByMonth[m] = { total:0, list:[] };
-                        incByMonth[m].total += amt;
-                        incByMonth[m].list.push({ title: w.name + " &bull; " + (w.workTitle||w.category), date: d, amt: amt, mode: w.payMode1||'Cash' });
-                    }
-                };
-
-                trackPay(w.date1, p1); trackPay(w.date2, p2); trackPay(w.date3, p3);
-
-                if(w.type === 'customer') {
-                    if(pend > 0) tOut += pend;
-                    let cleanPhone = (w.phone || '').trim().replace(/\D/g, '');
-                    custSet.add((w.name||'').toLowerCase() + '_' + cleanPhone);
-                }
-            });
-
-            document.getElementById('repCust').innerText = custSet.size;
-            document.getElementById('repWorks').innerText = tWorks;
-            document.getElementById('repActive').innerText = tActive;
-            document.getElementById('repComp').innerText = tComp;
-            document.getElementById('repOut').innerText = `₹${tOut.toFixed(0)}`;
-            document.getElementById('repTodayInc').innerText = `₹${todayInc.toFixed(0)}`;
-            document.getElementById('repMonthInc').innerText = `₹${mInc.toFixed(0)}`;
-            document.getElementById('repMonthExp').innerText = `₹${mExp.toFixed(0)}`;
-            document.getElementById('repTotInc').innerText = `₹${tInc.toFixed(0)}`;
-            document.getElementById('repTotExp').innerText = `₹${tExp.toFixed(0)}`;
-            document.getElementById('repProfit').innerText = `₹${(tInc - tExp).toFixed(0)}`;
-
-            const monthSel = document.getElementById('repMonthFilter');
-            let sortedMonths = Object.keys(incByMonth).sort().reverse();
-            
-            if (monthSel.options.length !== sortedMonths.length) {
-                let currentVal = monthSel.value || curMonth;
-                monthSel.innerHTML = '';
-                sortedMonths.forEach(m => { monthSel.appendChild(new Option(getMonthName(m), m)); });
-                if(sortedMonths.includes(currentVal)) monthSel.value = currentVal;
-                else if(sortedMonths.length > 0) monthSel.value = sortedMonths[0];
-            }
-
-            let selM = monthSel.value;
-            const incContainer = document.getElementById('reportIncomeList');
-            incContainer.innerHTML = '';
-
-            if(selM && incByMonth[selM]) {
-                let mData = incByMonth[selM];
-                let entriesHtml = mData.list.map(entry => {
-                    return `
-                    <div class="entry-row">
-                        <div class="entry-desc" style="flex:1;">
-                            <h4>${escapeHTML(entry.title)}</h4>
-                            <p>${escapeHTML(entry.mode)} &bull; ${escapeHTML(entry.date)}</p>
-                        </div>
-                        <div class="entry-amt green">+₹${entry.amt.toFixed(0)}</div>
-                    </div>`;
-                }).join('');
-
-                incContainer.innerHTML = `
-                    <div class="month-acc open" style="box-shadow:none; border:none;">
-                        <div class="month-acc-header" style="background:transparent; border-bottom:1px solid var(--border);">
-                            <div class="acc-title">${getMonthName(selM)}</div>
-                            <span class="acc-amt">₹${mData.total.toFixed(0)}</span>
-                        </div>
-                        <div class="month-acc-body" style="padding:0; border:none; display:block;">${entriesHtml}</div>
-                    </div>`;
-            } else {
-                incContainer.innerHTML = `<p style="padding:20px; color:var(--text-muted);">No Income data for this month.</p>`;
-            }
-        }
-
-        /* ==================== CUSTOMER DETAIL VIEW ==================== */
-        function openPersonDetail(personKey) {
-            currentActivePersonKey = personKey;
-            document.getElementById('customerListView').style.display = 'none';
-            document.getElementById('customerDetailView').style.display = 'block';
-            renderPersonDetailView(personKey);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        function closeDetailView() {
-            currentActivePersonKey = null;
-            document.getElementById('customerDetailView').style.display = 'none';
-            document.getElementById('customerListView').style.display = 'block';
-            loadCustomersUI();
-        }
-
-        function renderPersonDetailView(personKey) {
-            const container = document.getElementById('custWorksCardsContainer');
-            container.innerHTML = '';
-
-            let works = cloudKhataData.filter(e => {
-                const cleanName = (e.name || 'Unknown').trim().toLowerCase();
-                const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
-                return (cleanName + '_' + cleanPhone) === personKey && e.type === 'customer';
-            });
-            if(works.length === 0) { closeDetailView(); return; }
-
-            works.sort((a, b) => new Date(b.entryDate || 0) - new Date(a.entryDate || 0)); 
-
-            let personName = works[0].name;
-            let totalBusiness = 0; let totalReceived = 0;
-
-            works.forEach(w => {
-                totalBusiness += parseFloat(w.total) || 0;
-                totalReceived += (parseFloat(w.pay1)||0) + (parseFloat(w.pay2)||0) + (parseFloat(w.pay3)||0);
-            });
-
-            document.getElementById('custDetailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
-            document.getElementById('custDetailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
-            document.getElementById('custDetailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
-            document.getElementById('custDetailWorksCount').innerText = works.length;
-            document.getElementById('custDetailPersonNameTitle').innerText = `${escapeHTML(personName)} - Works`;
-
-            works.forEach((w, idx) => {
-                let finalAmt = parseFloat(w.total) || 0;
-                let rcvAmt = (parseFloat(w.pay1)||0) + (parseFloat(w.pay2)||0) + (parseFloat(w.pay3)||0);
-                let pendAmt = finalAmt - rcvAmt;
-                let title = w.workTitle || w.item || `Work #${idx + 1}`;
-                
-                let payDesc = '';
-                if(w.pay1 > 0) payDesc += `1st: ₹${w.pay1} ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
-                if(w.pay2 > 0) payDesc += `2nd: ₹${w.pay2} ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
-                if(w.pay3 > 0) payDesc += `3rd: ₹${w.pay3} ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''}`;
-                payDesc = payDesc.replace(/ \| $/, '');
-
-                let itemsOverview = '';
-                if(w.items && w.items.length > 0) itemsOverview = w.items.map(it => `• ${escapeHTML(it.name)} - ${it.qty} ${escapeHTML(it.unit)}`).join('<br>');
-                else if(w.item) itemsOverview = escapeHTML(w.item);
-
-                container.innerHTML += `
-                    <div class="w-card">
-                        <div class="w-actions">
-                            <button class="w-btn btn-inv" onclick="generateInvoice('${w.id}')"><i class="fas fa-file-invoice"></i></button>
-                            <button class="w-btn btn-edit" onclick="editWorkEntry('${w.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="w-btn btn-del" onclick="deleteWorkEntry('${w.id}')"><i class="fas fa-trash"></i></button>
-                        </div>
-                        <div class="w-header">
-                            <h4>${escapeHTML(title)}</h4>
-                            <p>${escapeHTML(w.category)} &bull; Date: ${escapeHTML(w.entryDate || '-')}</p>
-                        </div>
-                        <div class="w-status ${pendAmt <= 0 ? 'delivered' : ''}">${pendAmt <= 0 ? 'Delivered' : escapeHTML(w.status || 'Pending')}</div>
-                        <div class="w-items">${itemsOverview || 'No items listed'}</div>
-                        <div class="w-amounts">
-                            <div class="w-amt-box"><p>Final</p><h5>₹${finalAmt.toFixed(2)}</h5></div>
-                            <div class="w-amt-box"><p>Received</p><h5 style="color:var(--green);">₹${rcvAmt.toFixed(2)}</h5></div>
-                            <div class="w-amt-box"><p>Pending</p><h5 style="color:var(--red);">₹${pendAmt.toFixed(2)}</h5></div>
-                        </div>
-                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px; font-weight:600;">${escapeHTML(payDesc)}</p>
-                    </div>`;
-            });
-        }
-
-        /* ==================== WORK MODAL LOGIC ==================== */
-        function addWorkItemRow(name='', qty='', unit='KG', rate='', amount='') {
-            const list = document.getElementById('workItemsList');
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            row.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                    <span style="color:var(--text-muted); font-size:0.8rem; font-weight:bold;">Item Detail</span>
-                    <button type="button" onclick="this.parentElement.parentElement.remove(); calcWorkTotal();" style="background:var(--red); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.7rem; cursor:pointer;">🗑️ Remove</button>
-                </div>
-                <input type="text" class="itemName" placeholder="Item Name" value="${escapeHTML(name)}">
-                <div class="item-grid">
-                    <input type="number" class="itemQty" placeholder="Qty" value="${qty}" oninput="calcWorkTotal()">
-                    <select class="itemUnit" style="margin:0;"><option value="KG" ${unit==='KG'?'selected':''}>KG</option><option value="Pcs" ${unit==='Pcs'?'selected':''}>Pcs</option><option value="Feet" ${unit==='Feet'?'selected':''}>Feet</option><option value="Sq.Feet" ${unit==='Sq.Feet'?'selected':''}>Sq.Feet</option><option value="Ltr" ${unit==='Ltr'?'selected':''}>Ltr</option><option value="Set" ${unit==='Set'?'selected':''}>Set</option></select>
-                    <input type="number" class="itemRate" placeholder="Rate (₹)" value="${rate}" oninput="calcWorkTotal()">
-                </div>
-                <input type="number" class="itemAmount" placeholder="Amount" value="${amount}" readonly style="margin-top:6px; background:#eff6ff; font-weight:bold; color:var(--primary);">
-            `;
-            list.appendChild(row);
-        }
-
-        function calcWorkTotal() {
-            let subtotal = 0;
-            document.querySelectorAll('.item-row').forEach(row => {
-                let q = parseFloat(row.querySelector('.itemQty').value) || 0;
-                let r = parseFloat(row.querySelector('.itemRate').value) || 0;
-                let amt = q * r;
-                row.querySelector('.itemAmount').value = amt.toFixed(2);
-                subtotal += amt;
-            });
-            let l = parseFloat(document.getElementById('kLabour').value) || 0;
-            let t = parseFloat(document.getElementById('kTransport').value) || 0;
-            let i = parseFloat(document.getElementById('kInstallation').value) || 0;
-            let o = parseFloat(document.getElementById('kOther').value) || 0;
-            let d = parseFloat(document.getElementById('kDiscount').value) || 0;
-            let finalTotal = subtotal + l + t + i + o - d;
-            if(finalTotal < 0) finalTotal = 0;
-            finalTotal = Math.round(finalTotal * 100) / 100;
-            document.getElementById('kTotal').value = finalTotal;
-            document.getElementById('kGrandTotalLabel').innerText = finalTotal.toFixed(2);
-        }
-
-        function openWorkModalForPerson(forcedType) {
-            resetWorkModal();
-            document.getElementById('khataType').value = forcedType;
-            toggleKhataFields();
-            
-            if(currentActivePersonKey && forcedType === 'customer') {
-                const works = cloudKhataData.filter(e => {
-                    const k = (e.name || 'Unknown').trim().toLowerCase() + '_' + (e.phone || '').trim().replace(/\D/g, '');
-                    return k === currentActivePersonKey;
-                });
-                if(works.length > 0) {
-                    document.getElementById('kName').value = works[0].name || '';
-                    document.getElementById('kPhone').value = works[0].phone || '';
-                    document.getElementById('kAddress').value = works[0].address || '';
-                }
-            }
-            document.getElementById('workModalTitle').innerText = (forcedType === 'expense') ? "Naya Kharcha" : "Naya Kaam Jodein";
-            addWorkItemRow();
-            document.getElementById('workModal').style.display = 'flex';
-        }
-
-        function openWorkModalForNewPerson() { openWorkModalForPerson('customer'); }
-        function openWorkModalForNewExpense() { openWorkModalForPerson('expense'); }
-
-        function closeWorkModal() { document.getElementById('workModal').style.display = 'none'; resetWorkModal(); }
-
-        function toggleKhataFields() {
-            const type = document.getElementById('khataType').value;
-            if(type === 'expense') {
-                document.getElementById('personDetailsForm').style.display = 'none';
-                document.getElementById('paymentLabelText').innerText = 'Expense Amount (Paisa Diya):';
-            } else {
-                document.getElementById('personDetailsForm').style.display = 'block';
-                document.getElementById('paymentLabelText').innerText = (type === 'supplier') ? 'Payment Given (Paisa Diya):' : 'Payment Received (Paisa mila):';
-            }
-        }
-
-        function saveWorkEntry() {
-            const type = document.getElementById('khataType').value;
-            let name = document.getElementById('kName').value.trim();
-            if(type === 'expense') name = "Shop Expenses";
-            else if(!name) { alert("Kripya Naam likhein!"); return; }
-
-            const editId = document.getElementById('editEntryId').value;
-            const today = new Date().toISOString().split('T')[0];
-
-            let workItems = [];
-            document.querySelectorAll('.item-row').forEach(row => {
-                let n = row.querySelector('.itemName').value.trim();
-                if(n) {
-                    workItems.push({
-                        name: n, qty: parseFloat(row.querySelector('.itemQty').value) || 0,
-                        unit: row.querySelector('.itemUnit').value || 'KG',
-                        rate: parseFloat(row.querySelector('.itemRate').value) || 0,
-                        amount: parseFloat(row.querySelector('.itemAmount').value) || 0
-                    });
-                }
-            });
-
-            const entry = {
-                entryDate: editId ? (cloudKhataData.find(e=>e.id===editId).entryDate || today) : today,
-                type: type, name: name,
-                phone: (type==='expense') ? '' : document.getElementById('kPhone').value,
-                address: (type==='expense') ? '' : document.getElementById('kAddress').value,
-                workTitle: document.getElementById('kWorkTitle').value || 'Work Item',
-                category: document.getElementById('kCategory').value || 'Fabrication',
-                status: document.getElementById('kStatus').value || 'Delivered',
-                items: workItems,
-                labour: parseFloat(document.getElementById('kLabour').value) || 0,
-                transport: parseFloat(document.getElementById('kTransport').value) || 0,
-                installation: parseFloat(document.getElementById('kInstallation').value) || 0,
-                otherCharges: parseFloat(document.getElementById('kOther').value) || 0,
-                discount: parseFloat(document.getElementById('kDiscount').value) || 0,
-                total: parseFloat(document.getElementById('kTotal').value) || 0,
-                date1: document.getElementById('kDate1').value, pay1: parseFloat(document.getElementById('kPay1').value) || 0, payMode1: document.getElementById('kPayMode1').value,
-                date2: document.getElementById('kDate2').value, pay2: parseFloat(document.getElementById('kPay2').value) || 0, payMode2: document.getElementById('kPayMode2').value,
-                date3: document.getElementById('kDate3').value, pay3: parseFloat(document.getElementById('kPay3').value) || 0, payMode3: document.getElementById('kPayMode3').value,
-                note: document.getElementById('kNote').value
-            };
-
-            if(editId) db.ref('shopKhata/' + editId).update(entry).then(() => { alert("Updated! ✅"); closeWorkModal(); });
-            else db.ref('shopKhata').push(entry).then(() => { alert("Saved! ✅"); closeWorkModal(); });
-        }
-
-        function editWorkEntry(id) {
-            const item = cloudKhataData.find(e => e.id === id);
-            if(!item) return;
-            resetWorkModal();
-            document.getElementById('editEntryId').value = item.id;
-            document.getElementById('khataType').value = item.type || 'customer';
-            toggleKhataFields();
-            
-            if(item.type !== 'expense') {
-                document.getElementById('kName').value = item.name || '';
-                document.getElementById('kPhone').value = item.phone || '';
-                document.getElementById('kAddress').value = item.address || '';
-            }
-            document.getElementById('kWorkTitle').value = item.workTitle || '';
-            document.getElementById('kCategory').value = item.category || '';
-            document.getElementById('kStatus').value = item.status || 'Delivered';
-            
-            if(item.items && item.items.length > 0) item.items.forEach(it => { addWorkItemRow(it.name, it.qty, it.unit, it.rate, it.amount); });
-            else addWorkItemRow(item.item, item.qty, 'KG', item.rate, (item.qty||0)*(item.rate||0));
-
-            document.getElementById('kLabour').value = item.labour || ''; document.getElementById('kTransport').value = item.transport || '';
-            document.getElementById('kInstallation').value = item.installation || ''; document.getElementById('kOther').value = item.otherCharges || '';
-            document.getElementById('kDiscount').value = item.discount || ''; calcWorkTotal(); 
-
-            document.getElementById('kDate1').value = item.date1 || ''; document.getElementById('kPay1').value = item.pay1 || ''; document.getElementById('kPayMode1').value = item.payMode1 || '';
-            document.getElementById('kDate2').value = item.date2 || ''; document.getElementById('kPay2').value = item.pay2 || ''; document.getElementById('kPayMode2').value = item.payMode2 || '';
-            document.getElementById('kDate3').value = item.date3 || ''; document.getElementById('kPay3').value = item.pay3 || ''; document.getElementById('kPayMode3').value = item.payMode3 || '';
-            document.getElementById('kNote').value = item.note || '';
-
-            document.getElementById('workModalTitle').innerText = "Edit Entry: " + escapeHTML(item.name);
-            document.getElementById('workModal').style.display = 'flex';
-        }
-
-        function deleteWorkEntry(id) { if(confirm("Delete karna chahte hain?")) db.ref('shopKhata/' + id).remove(); }
-
-        function resetWorkModal() {
-            document.getElementById('editEntryId').value = ''; document.getElementById('khataType').value = 'customer'; toggleKhataFields();
-            document.getElementById('kName').value = ''; document.getElementById('kPhone').value = ''; document.getElementById('kAddress').value = '';
-            document.getElementById('kWorkTitle').value = ''; document.getElementById('kCategory').value = ''; document.getElementById('kStatus').value = 'Delivered';
-            document.getElementById('workItemsList').innerHTML = ''; 
-            document.getElementById('kLabour').value = ''; document.getElementById('kTransport').value = ''; document.getElementById('kInstallation').value = ''; document.getElementById('kOther').value = ''; document.getElementById('kDiscount').value = '';
-            document.getElementById('kTotal').value = '0'; document.getElementById('kGrandTotalLabel').innerText = '0.00';
-            document.getElementById('kDate1').value = ''; document.getElementById('kPay1').value = ''; document.getElementById('kPayMode1').value = '';
-            document.getElementById('kDate2').value = ''; document.getElementById('kPay2').value = ''; document.getElementById('kPayMode2').value = '';
-            document.getElementById('kDate3').value = ''; document.getElementById('kPay3').value = ''; document.getElementById('kPayMode3').value = '';
-            document.getElementById('kNote').value = '';
-        }
-
-        /* ==================== INVOICE GENERATOR ==================== */
-        function generateInvoice(workId) {
-            const w = cloudKhataData.find(e => e.id === workId);
-            if(!w) return;
-            let invoiceNo = "WK" + Date.now().toString().slice(-5);
-            let rawDate = w.entryDate || new Date().toISOString().split('T')[0];
-            let formattedDate = rawDate.split('-').reverse().join('-');
-            
-            let modes = [];
-            if(w.pay1 > 0 && w.payMode1) modes.push(w.payMode1);
-            if(w.pay2 > 0 && w.payMode2) modes.push(w.payMode2);
-            if(w.pay3 > 0 && w.payMode3) modes.push(w.payMode3);
-            let uniqueModes = [...new Set(modes)].join(' + ');
-
-            let rcvText = (w.type === 'supplier' || w.type === 'expense') ? 'Amount Paid' : 'Amount Received';
-            if(uniqueModes) rcvText += ` (${escapeHTML(uniqueModes)})`;
-
-            let itemsHtml = ''; let subtotal = 0;
-            if(w.items && w.items.length > 0) {
-                w.items.forEach(it => {
-                    let amt = it.amount || ((it.qty || 0) * (it.rate || 0));
-                    itemsHtml += `<tr><td>${escapeHTML(it.name)}</td><td>${it.qty} ${escapeHTML(it.unit)}</td><td>₹${it.rate}</td><td>₹${amt.toFixed(2)}</td></tr>`;
-                    subtotal += amt;
-                });
-            } else {
-                let amt = (w.qty || 0) * (w.rate || 0);
-                itemsHtml += `<tr><td>${escapeHTML(w.item || w.workTitle || 'Fabrication Work')}</td><td>${w.qty || '-'}</td><td>₹${w.rate || '-'}</td><td>₹${amt.toFixed(2)}</td></tr>`;
-                subtotal += amt;
-            }
-
-            let chargesHtml = '';
-            if((w.labour || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Labour</td><td>₹${w.labour}</td></tr>`;
-            if((w.transport || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Transport</td><td>₹${w.transport}</td></tr>`;
-            if((w.installation || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Installation</td><td>₹${w.installation}</td></tr>`;
-            if((w.otherCharges || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Other</td><td>₹${w.otherCharges}</td></tr>`;
-            let discHtml = '';
-            if((w.discount || 0) > 0) discHtml = `<tr><td colspan="3" style="text-align:right;">Discount</td><td>- ₹${w.discount}</td></tr>`;
-
-            let finalTotal = w.total || 0;
-            let rcvAmt = (parseFloat(w.pay1)||0) + (parseFloat(w.pay2)||0) + (parseFloat(w.pay3)||0);
-            let pending = finalTotal - rcvAmt;
-
-            const printHtml = `
-                <div class="inv-header">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div class="inv-logo-box">CT</div>
-                        <div style="font-size: 28px; font-weight: 900; color: #1e293b;">Chakradhari Traders</div>
-                    </div>
-                    <div style="text-align: right;"><div class="inv-title">INVOICE</div><div style="font-size: 14px;">Invoice No: <b>${invoiceNo}</b></div><div style="font-size: 14px;">Date: <b>${formattedDate}</b></div></div>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom: 25px;">
-                    <div class="inv-box" style="width: 45%;"><strong style="font-size: 12px; color:var(--text-muted);">BILL TO:</strong><br><h3 style="margin: 5px 0;">${escapeHTML(w.name)}</h3><div style="font-size: 14px;">${w.phone ? `Phone: ${escapeHTML(w.phone)}<br>` : ''}${w.address ? `Address: ${escapeHTML(w.address)}` : ''}</div></div>
-                    <div class="inv-box" style="width: 45%; text-align:right;"><strong style="font-size: 12px; color:var(--text-muted);">FROM:</strong><br><h3 style="margin: 5px 0;">Chakradhari Traders</h3><div style="font-size: 14px;">Nayagaon Bariyarpur, Vaishali<br>Bihar (844506)<br>Phone: 9304672299</div></div>
-                </div>
-                <table class="inv-table">
-                    <thead><tr><th>Item Description</th><th>Qty / Unit</th><th>Rate</th><th>Amount</th></tr></thead>
-                    <tbody>
-                        ${itemsHtml}
-                        <tr><td colspan="3" style="text-align:right; font-weight:bold;">Subtotal</td><td style="font-weight:bold;">₹${subtotal.toFixed(2)}</td></tr>
-                        ${chargesHtml} ${discHtml}
-                        <tr class="inv-summary-row"><td colspan="3" style="text-align:right; font-size: 18px;">Final Total</td><td style="font-size: 18px;">₹${finalTotal.toFixed(2)}</td></tr>
-                        <tr><td colspan="3" style="text-align:right; color:#16a34a; font-weight:bold;">${rcvText}</td><td style="color:#16a34a; font-weight:bold;">₹${rcvAmt.toFixed(2)}</td></tr>
-                        <tr><td colspan="3" style="text-align:right; color:#dc2626; font-weight:bold;">Pending Balance</td><td style="color:#dc2626; font-weight:bold;">₹${pending.toFixed(2)}</td></tr>
-                    </tbody>
-                </table>
-                <div style="text-align:center; margin-top:40px; font-size:13px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:15px;">Thank you for your business! - Chakradhari Traders ERP</div>`;
-            document.getElementById('invoicePrintArea').innerHTML = printHtml;
-            window.print();
-        }
-
-        /* SHOWROOM LOGIC (Moved to More Tab popup) */
-        function openShowroom() {
-            document.getElementById('showroomView').style.display = 'block';
-            updateCategoryDropdown();
-            loadImagesUI();
-        }
-        function closeShowroom() { document.getElementById('showroomView').style.display = 'none'; }
-
-        function updateCategoryDropdown() {
-            const select = document.getElementById('itemFilter');
-            const currentVal = select.value;
-            select.innerHTML = '';
-            cloudCategories.forEach(cat => { select.innerHTML += `<option value="${escapeHTML(cat)}">${escapeHTML(cat)}</option>`; });
-            if (cloudCategories.includes(currentVal)) select.value = currentVal;
-            else if (cloudCategories.length > 0) select.value = cloudCategories[0];
-        }
-
-        function addNewCategory() {
-            const newCat = prompt("Naya category ka naam likhein:");
-            if (newCat && newCat.trim() !== "") {
-                const catName = newCat.trim();
-                if (!cloudCategories.includes(catName)) {
-                    cloudCategories.push(catName);
-                    db.ref('showroomCategories').set(cloudCategories);
-                    db.ref('customShowroomImages/' + catName).set([]).then(() => {
-                        updateCategoryDropdown(); document.getElementById('itemFilter').value = catName; loadImagesUI();
-                    });
-                } else { alert("Ye category pehle se list me hai!"); }
-            }
-        }
-
-        function renameCurrentCategory() {
-            const select = document.getElementById('itemFilter');
-            const oldCatName = select.value;
-            if(!oldCatName) return;
-            const newName = prompt(`'${oldCatName}' ka naya naam likhein:`, oldCatName);
-            if(newName && newName.trim() !== "" && newName.trim() !== oldCatName) {
-                const newCatName = newName.trim();
-                document.getElementById('loader').style.display = 'block';
-                let existingImages = cloudImagesData[oldCatName] || [];
-                db.ref('customShowroomImages/' + newCatName).set(existingImages).then(() => {
-                    db.ref('customShowroomImages/' + oldCatName).remove();
-                    cloudCategories = cloudCategories.map(c => c === oldCatName ? newCatName : c);
-                    return db.ref('showroomCategories').set(cloudCategories);
-                }).then(() => {
-                    document.getElementById('loader').style.display = 'none';
-                    updateCategoryDropdown(); document.getElementById('itemFilter').value = newCatName; loadImagesUI();
-                }).catch(err => { document.getElementById('loader').style.display = 'none'; alert("Error: " + err.message); });
-            }
-        }
-
-        function deleteCurrentCategory() {
-            const select = document.getElementById('itemFilter');
-            const catName = select.value;
-            if(!catName) return;
-            if(confirm(`Kya aap sach me '${catName}' category delete karna chahte hain?`)) {
-                cloudCategories = cloudCategories.filter(c => c !== catName);
-                db.ref('showroomCategories').set(cloudCategories);
-                db.ref('customShowroomImages/' + catName).remove();
-            }
-        }
-
-        function triggerReplace(category, index) { currentReplacingKey = category; currentReplacingIndex = index; document.getElementById('replaceFileInput').click(); }
-        function triggerAdd(category) { currentAddingKey = category; document.getElementById('addFileInput').click(); }
-
-        function uploadImageToFirebase(file, category, indexToReplace = -1) {
-            if (!file.type.startsWith('image/')) { alert("Kripya sirf image (photo) select karein!"); document.getElementById('loader').style.display = 'none'; return; }
-            try {
-                const refName = 'showroom/' + Date.now() + '_' + file.name;
-                const fileRef = storage.ref().child(refName);
-                fileRef.put(file).then(snapshot => snapshot.ref.getDownloadURL())
-                .then(url => { saveImageUrlToDB(url, category, indexToReplace); })
-                .catch(err => { console.warn("Storage upload failed, falling back: " + err.message); fallbackBase64Upload(file, category, indexToReplace); });
-            } catch(e) { fallbackBase64Upload(file, category, indexToReplace); }
-        }
-
-        function fallbackBase64Upload(file, category, indexToReplace) {
-            const reader = new FileReader(); reader.readAsDataURL(file);
-            reader.onload = function(event) {
-                const img = new Image(); img.src = event.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas'); let width = img.width; let height = img.height;
-                    if (width > 800) { height *= 800 / width; width = 800; }
-                    canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                    saveImageUrlToDB(canvas.toDataURL('image/jpeg', 0.7), category, indexToReplace);
-                };
-            };
-        }
-
-        function saveImageUrlToDB(url, category, indexToReplace) {
-            if(!cloudImagesData[category]) cloudImagesData[category] = [];
-            if(indexToReplace > -1) cloudImagesData[category][indexToReplace] = url; else cloudImagesData[category].push(url);
-            db.ref('customShowroomImages/' + category).set(cloudImagesData[category]).then(() => { document.getElementById('loader').style.display = 'none'; }).catch(err => { document.getElementById('loader').style.display = 'none'; alert("DB Error: " + err.message); });
-        }
-
-        function handleImageFileChange(e) { const file = e.target.files[0]; if (!file) return; document.getElementById('loader').style.display = 'block'; uploadImageToFirebase(file, currentReplacingKey, currentReplacingIndex); e.target.value = ''; }
-        function handleAddImageFileChange(e) { const file = e.target.files[0]; if (!file) return; document.getElementById('loader').style.display = 'block'; uploadImageToFirebase(file, currentAddingKey, -1); e.target.value = ''; }
-        function deleteImage(category, index) { if(confirm("Kya aap sach me is image ko delete karna chahte hain?")) { cloudImagesData[category].splice(index, 1); db.ref('customShowroomImages/' + category).set(cloudImagesData[category]); } }
-
-        function loadImagesUI() {
-            const item = document.getElementById('itemFilter').value;
-            if(!item) return;
-            const grid = document.getElementById('imageGrid'); grid.innerHTML = '';
-            let imgs = cloudImagesData[item] || [];
-            
-            imgs.forEach((imgUrl, index) => {
-                let ownerButtons = '';
-                if(loggedInRole === 'owner') {
-                    ownerButtons = `<div class="owner-actions"><button class="primary-btn" onclick="triggerReplace('${escapeHTML(item)}', ${index})" style="margin:0; padding:8px;"><i class="fas fa-edit"></i> Replace</button><button class="primary-btn" onclick="deleteImage('${escapeHTML(item)}', ${index})" style="background:var(--red); margin:0; padding:8px;"><i class="fas fa-trash"></i></button></div>`;
-                }
-                grid.innerHTML += `<div class="img-card"><img src="${escapeHTML(imgUrl)}" onclick="openModal('${escapeHTML(imgUrl)}')"><div class="img-card-body"><h3 style="font-size:1.05rem; margin-bottom:10px;">${escapeHTML(item)} Design #${index + 1}</h3><a href="https://wa.me/919304672299?text=Order%20${escapeHTML(item)}%20Design%20${index + 1}" target="_blank" style="text-decoration:none;"><button class="primary-btn" style="background:var(--green); margin:0;"><i class="fab fa-whatsapp"></i> Order on WhatsApp</button></a>${ownerButtons}</div></div>`;
-            });
-
-            if(loggedInRole === 'owner') {
-                grid.innerHTML += `<div class="img-card" style="display:flex; justify-content:center; align-items:center; background:rgba(59, 130, 246, 0.05); border: 2px dashed var(--primary); min-height:240px; cursor:pointer;" onclick="triggerAdd('${escapeHTML(item)}')"><div style="text-align:center; padding: 20px;"><div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 10px;"><i class="fas fa-plus-circle"></i></div><h3 style="color:var(--primary); font-size:1rem;">Add Photo Here</h3></div></div>`;
-            }
-        }
-
-        function openModal(url) { document.getElementById('myModal').style.display = "flex"; document.getElementById('imgModalTarget').src = url; }
-        function closeModal() { document.getElementById('myModal').style.display = "none"; }
-
-        function loadLogsUI() {
-            const display = document.getElementById('logDisplay');
-            display.innerHTML = '';
-            let logs = [...cloudLogsData].reverse();
-            logs.forEach(l => { display.innerHTML += `<p style="padding:12px; border-bottom:1px solid var(--border); font-size:0.9rem;">⏱️ <b>${escapeHTML(l.time)}</b><br>Role: ${escapeHTML(l.role).toUpperCase()} | Phone: <b>${escapeHTML(l.phone)}</b></p>`; });
-        }
-        
-        function logout() { 
-            localStorage.setItem('isOwnerLoggedIn', 'false'); 
-            localStorage.setItem('ownerSessionExpire', '0'); 
-            loggedInRole = 'customer'; 
-            
-            // Saare active tabs ko band karna taaki background mein kuch na dikhe
-            document.querySelectorAll('.section-tab').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById('showroomView').style.display = 'none'; 
-            document.getElementById('bottomNavBar').style.display = 'none'; 
-            document.getElementById('loginPage').style.display = 'block'; 
-        }
-    </script>
+    <div id="loader">Kripya Pratiksha Karein... (Process ho raha hai ⌛)</div>
+
+    <!-- INVOICE PRINT AREA (HIDDEN BY DEFAULT) -->
+    <div id="invoicePrintArea"></div>
+
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="login-container">
+        <h2>Chakradhari Traders ERP</h2>
+        <p style="color: #94a3b8; margin-bottom: 15px;">Welcome! Kripya apna role chunein:</p>
+        <select id="userRole" onchange="toggleRoleFields()">
+            <option value="customer">Customer</option>
+            <option value="owner">Owner</option>
+        </select>
+        
+        <div id="phoneField">
+            <input type="number" id="loginPhone" placeholder="Apna Mobile Number Daalein">
+        </div>
+        <div id="passField" style="display: none;">
+            <div class="password-box">
+                <input type="password" id="loginPass" placeholder="Owner Firebase Password">
+                <button type="button" onclick="togglePassView()">👁️</button>
+            </div>
+        </div>
+
+        <button onclick="handleLogin()">System Me Ghusein 🔥</button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="mainDashboard" class="main-content">
+        <header>
+            <h1>Chakradhari Traders</h1>
+            <p>Prop: Aditya Raj | Nayagaon Bariyarpur, Vaishali, Bihar</p>
+            <button class="logout-btn" onclick="logout()">Log Out</button>
+        </header>
+
+        <div class="info-bar">
+            <span><b>📞 Call/WhatsApp:</b> 9304672299</span>
+            <span><b>📍 Address:</b> Nayagaon Bariyarpur, Vaishali (844506)</span>
+            <span><b>🟢 WhatsApp Order:</b> <a href="https://wa.me/919304672299" target="_blank">Direct Chat</a></span>
+        </div>
+
+        <div class="nav-tabs">
+            <div id="tabShowroom" class="tab-btn active" onclick="switchTab('showroom')">🖼️ Design Showroom</div>
+            <div id="tabKhata" class="tab-btn" onclick="switchTab('khata')" style="display: none;">📊 ERP Ledger Book</div>
+            <div id="tabLogs" class="tab-btn" onclick="switchTab('logs')" style="display: none;">📱 Login Logs</div>
+        </div>
+
+        <!-- SHOWROOM -->
+        <div id="showroomSection">
+            <div class="controls" style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex-grow: 1;">
+                    <h3 style="color:#fff; margin-bottom: 10px;">Lohe aur Steel ke Behtareen Designs</h3>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <select id="itemFilter" onchange="loadImagesUI()" style="margin: 0; flex-grow: 1; min-width: 150px;"></select>
+                        <button id="editCategoryBtn" onclick="renameCurrentCategory()" style="width: auto; background: #3b82f6; color: white; display: none; margin: 0; padding: 12px;" title="Rename">✏️</button>
+                        <button id="delCategoryBtn" onclick="deleteCurrentCategory()" style="width: auto; background: #dc2626; color: white; display: none; margin: 0; padding: 12px;" title="Delete">🗑️</button>
+                    </div>
+                </div>
+                <button id="addCategoryBtn" onclick="addNewCategory()" style="width: 100%; background: #f59e0b; color: black; display: none; margin-bottom: 0; padding: 12px;">
+                    ➕ Naya Category
+                </button>
+            </div>
+            <div class="image-grid" id="imageGrid"></div>
+        </div>
+
+        <!-- ERP KHATA BOOK SECTION -->
+        <div id="khataSection" style="display: none;">
+            
+            <!-- DASHBOARD & CHART SECTION -->
+            <div id="erpDashboard" style="margin-bottom: 25px; padding: 20px; background: var(--card-bg); border-radius: 14px; border: 1px solid #334155; display: none;">
+                <h3 style="color:#fff; margin-bottom: 15px;">📈 Business Dashboard</h3>
+                <div class="banner-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 20px;">
+                    <div class="banner-stat-card" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #16a34a;">
+                        <p style="color: #4ade80;">Total Income</p>
+                        <h3 id="dashIncome">₹0</h3>
+                    </div>
+                    <div class="banner-stat-card" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #dc2626;">
+                        <p style="color: #f87171;">Total Expense</p>
+                        <h3 id="dashExpense">₹0</h3>
+                    </div>
+                    <div class="banner-stat-card" style="background: rgba(59, 130, 246, 0.15); border: 1px solid #2563eb;">
+                        <p style="color: #60a5fa;">Bazar Me Udhari</p>
+                        <h3 id="dashUdhari">₹0</h3>
+                    </div>
+                    <div class="banner-stat-card" style="background: rgba(245, 158, 11, 0.15); border: 1px solid #d97706;">
+                        <p style="color: #fbbf24;">Cash Profit</p>
+                        <h3 id="dashProfit">₹0</h3>
+                    </div>
+                </div>
+                <div style="background: var(--card-inner); padding: 15px; border-radius: 12px; border: 1px solid #475569; position: relative; height: 250px; width: 100%;">
+                    <canvas id="businessChart"></canvas>
+                </div>
+            </div>
+
+            <!-- MASTER CARDS LIST VIEW -->
+            <div id="ledgerGridView">
+                <div class="erp-top-bar">
+                    <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">📋 Saved ERP Ledger Accounts</h3>
+                    
+                    <input type="text" id="searchName" placeholder="🔍 Naam ya Number se khojein..." onkeyup="loadLedgerGridUI()" style="flex-grow: 1; margin: 0; min-width: 200px; padding: 10px; border-radius: 8px; background: var(--card-inner); color: white; border: 1px solid #475569;">
+                    
+                    <select id="filterType" onchange="loadLedgerGridUI()" style="width: auto; margin: 0;">
+                        <option value="all">🔍 All (Sabhi Dekho)</option>
+                        <option value="customer">👤 Customers</option>
+                        <option value="supplier">🏢 Suppliers</option>
+                    </select>
+
+                    <button onclick="openWorkModalForNewPerson()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
+                        ➕ Naya Kaam
+                    </button>
+                </div>
+
+                <div class="erp-grid" id="masterCardsContainer"></div>
+            </div>
+
+            <!-- CUSTOMER DETAILS VIEW -->
+            <div id="personDetailView">
+                <button class="back-btn" onclick="closePersonDetail()" style="width: auto; background: #334155; margin-bottom: 20px; padding: 10px 18px;">
+                    ⬅️ Back to Ledger List
+                </button>
+
+                <div class="detail-banner">
+                    <h2 id="detailOutstandingAmt">₹0</h2>
+                    <div class="subtitle">Outstanding</div>
+                    <div class="banner-stats-grid">
+                        <div class="banner-stat-card"><h3 id="detailBusinessAmt">₹0</h3><p>Business</p></div>
+                        <div class="banner-stat-card"><h3 id="detailReceivedAmt">₹0</h3><p id="detailReceivedText">Received</p></div>
+                        <div class="banner-stat-card"><h3 id="detailWorksCount">0</h3><p>Works</p></div>
+                    </div>
+                </div>
+
+                <div class="works-section-title">
+                    <h3 id="detailPersonNameTitle">Works</h3>
+                </div>
+
+                <div id="worksCardsContainer"></div>
+                <button class="floating-add-btn" onclick="openWorkModalForCurrentPerson()" title="Add Work for this Customer">+</button>
+            </div>
+        </div>
+
+        <!-- CUSTOMER LOGS -->
+        <div id="logsSection" style="display: none;">
+            <div class="controls">
+                <h3>📱 Website Pe Aaye Grahakon ke Numbers</h3>
+                <div id="logDisplay"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR ADDING / EDITING WORK ENTRY -->
+    <div id="workModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeWorkModal()">&times;</span>
+            <h3 id="workModalTitle" style="color: var(--blue); margin-bottom: 15px;">Naya Kaam (Work) Jodein</h3>
+            <input type="hidden" id="editEntryId" value="">
+            
+            <label style="font-size: 0.85rem; color: #94a3b8;">Khata Type:</label>
+            <select id="khataType" onchange="toggleKhataFields()">
+                <option value="customer">Customer (Grahak)</option>
+                <option value="supplier">Supplier (Samaan Wala)</option>
+            </select>
+
+            <input type="text" id="kName" placeholder="Grahak / Supplier ka Naam (e.g., Rohit Kumar)">
+            <input type="number" id="kPhone" placeholder="Mobile Number">
+            <input type="text" id="kAddress" placeholder="Address / Pata">
+
+            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; display: block;">Work Title (Short Name):</label>
+            <input type="text" id="kWorkTitle" placeholder="e.g., Ghar ka Gate banwaya">
+
+            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 5px; display: block;">Category & Status:</label>
+            <div class="calc-row">
+                <input type="text" id="kCategory" placeholder="Category (Repair, Fabrication)">
+                <select id="kStatus">
+                    <option value="Delivered">🟢 Delivered</option>
+                    <option value="In Progress">🟡 In Progress</option>
+                    <option value="Pending">🔴 Pending</option>
+                </select>
+            </div>
+
+            <!-- MULTIPLE ITEMS SECTION -->
+            <label style="font-size: 0.95rem; color: #fff; margin-top: 15px; display: block; border-bottom: 1px solid #334155; padding-bottom: 5px;">Work Items (Bill Details):</label>
+            <div class="items-container" id="workItemsList"></div>
+            <button type="button" onclick="addWorkItemRow()" style="background: #3b82f6; padding: 8px; font-size: 0.85rem; margin-bottom: 15px;">+ Add New Item</button>
+
+            <!-- EXTRA CHARGES -->
+            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; display: block;">Extra Charges (Sirf tabhi bharein agar zaroorat ho):</label>
+            <div class="charges-grid">
+                <input type="number" id="kLabour" placeholder="Labour (Rs)" oninput="calcWorkTotal()">
+                <input type="number" id="kTransport" placeholder="Transport (Rs)" oninput="calcWorkTotal()">
+                <input type="number" id="kInstallation" placeholder="Installation (Rs)" oninput="calcWorkTotal()">
+                <input type="number" id="kOther" placeholder="Other Charge (Rs)" oninput="calcWorkTotal()">
+            </div>
+            
+            <div style="margin-top: 10px;">
+                <input type="number" id="kDiscount" placeholder="Discount (Minus karega)" oninput="calcWorkTotal()" style="border-color:#f59e0b;">
+            </div>
+
+            <div style="background: var(--blue); padding: 12px; border-radius: 8px; margin-top: 10px; display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: bold;">
+                <span>Grand Total:</span>
+                <span>₹<span id="kGrandTotalLabel">0.00</span></span>
+            </div>
+            <input type="hidden" id="kTotal" value="0">
+
+            <!-- PAYMENT WITH MODE -->
+            <label id="paymentLabelText" style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Details (Paisa mila/diya):</label>
+            <div class="payment-row">
+                <input type="date" id="kDate1">
+                <input type="number" id="kPay1" placeholder="1st Amount">
+                <select id="kPayMode1" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
+            </div>
+            <div class="payment-row">
+                <input type="date" id="kDate2">
+                <input type="number" id="kPay2" placeholder="2nd Amount">
+                <select id="kPayMode2" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
+            </div>
+            <div class="payment-row">
+                <input type="date" id="kDate3">
+                <input type="number" id="kPay3" placeholder="3rd Amount">
+                <select id="kPayMode3" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank">Bank</option>
+                </select>
+            </div>
+
+            <textarea id="kNote" placeholder="Koi special note likhna hai?"></textarea>
+            <button onclick="saveWorkEntry()" style="background: var(--green); padding: 14px; font-size: 1.1rem;">✅ Kaam Save Karo</button>
+        </div>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div id="myModal" class="modal">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="imgModalTarget" style="max-height: 80vh; object-fit: contain;">
+    </div>
+
+    <input type="file" id="replaceFileInput" class="hidden-file-input" accept="image/*" onchange="handleImageFileChange(event)">
+    <input type="file" id="addFileInput" class="hidden-file-input" accept="image/*" onchange="handleAddImageFileChange(event)">
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYuJJ1jbWF-NELI-B8BikkkVqdhMmklYw",
+            authDomain: "chakradhari-traders.firebaseapp.com",
+            databaseURL: "https://chakradhari-traders-default-rtdb.firebaseio.com",
+            projectId: "chakradhari-traders",
+            storageBucket: "chakradhari-traders.firebasestorage.app",
+            messagingSenderId: "444707223808",
+            appId: "1:444707223808:web:629ad531aeb3b94074dbe5"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth(); 
+        const storage = firebase.storage(); 
+
+        let loggedInRole = 'customer';
+        let cloudImagesData = {};
+        let cloudCategories = [];
+        let cloudKhataData = [];
+        let cloudLogsData = [];
+        let currentActivePersonKey = null;
+        let currentReplacingKey = '';
+        let currentReplacingIndex = -1;
+        let currentAddingKey = '';
+        let myChart = null; 
+
+        const escapeHTML = (str) => {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
+        };
+
+        db.ref('customShowroomImages').on('value', (snapshot) => {
+            cloudImagesData = snapshot.val() || {};
+            db.ref('showroomCategories').once('value', (catSnap) => {
+                let savedCats = catSnap.val() || [];
+                let allKeys = Object.keys(cloudImagesData);
+                let merged = Array.from(new Set([...savedCats, ...allKeys]));
+                if(merged.length === 0) merged = ["Gate Design", "Window", "Railing"];
+                cloudCategories = merged;
+                updateCategoryDropdown();
+                loadImagesUI();
+            });
+        });
+
+        db.ref('shopKhata').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            cloudKhataData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            if(loggedInRole === 'owner') {
+                updateDashboardAndChart(); 
+                loadLedgerGridUI();
+                if(currentActivePersonKey) renderPersonDetailView(currentActivePersonKey);
+            }
+        });
+
+        db.ref('siteLogs').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            cloudLogsData = Object.keys(data).map(key => data[key]);
+            if(loggedInRole === 'owner') loadLogsUI();
+        });
+
+        window.onload = function() {
+            let isLogged = localStorage.getItem('isOwnerLoggedIn');
+            let sessionTime = localStorage.getItem('ownerSessionExpire');
+            if(isLogged === 'true' && sessionTime && Date.now() < parseInt(sessionTime)) {
+                enableOwnerUI();
+            } else { logout(); }
+        };
+
+        function enableOwnerUI() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+            document.getElementById('tabKhata').style.display = 'block';
+            document.getElementById('tabLogs').style.display = 'block';
+            document.getElementById('erpDashboard').style.display = 'block'; 
+            document.getElementById('addCategoryBtn').style.display = 'block'; 
+            document.getElementById('editCategoryBtn').style.display = 'block'; 
+            document.getElementById('delCategoryBtn').style.display = 'block'; 
+            loggedInRole = 'owner';
+            updateCategoryDropdown();
+            loadImagesUI();
+            updateDashboardAndChart(); 
+            loadLedgerGridUI();
+            loadLogsUI();
+        }
+
+        function toggleRoleFields() {
+            const role = document.getElementById('userRole').value;
+            document.getElementById('phoneField').style.display = (role === 'owner') ? 'none' : 'block';
+            document.getElementById('passField').style.display = (role === 'owner') ? 'block' : 'none';
+        }
+
+        function togglePassView() {
+            const passInput = document.getElementById('loginPass');
+            passInput.type = (passInput.type === 'password') ? 'text' : 'password';
+        }
+
+        function handleLogin() {
+            const role = document.getElementById('userRole').value;
+            loggedInRole = role;
+
+            if (role === 'owner') {
+                const pass = document.getElementById('loginPass').value;
+                document.getElementById('loader').style.display = 'block';
+                
+                auth.signInWithEmailAndPassword('chakradhari2026@gmail.com', pass)
+                .then(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    localStorage.setItem('isOwnerLoggedIn', 'true');
+                    localStorage.setItem('ownerSessionExpire', Date.now() + 3600000);
+                    enableOwnerUI();
+                })
+                .catch((error) => {
+                    document.getElementById('loader').style.display = 'none';
+                    if(pass === 'Aditya930@') {
+                        localStorage.setItem('isOwnerLoggedIn', 'true');
+                        localStorage.setItem('ownerSessionExpire', Date.now() + 3600000);
+                        enableOwnerUI();
+                    } else {
+                        alert("Galat Password ya Firebase Error: " + error.message);
+                    }
+                });
+            } else {
+                const phone = document.getElementById('loginPhone').value;
+                if (phone.length >= 10) {
+                    db.ref('siteLogs').push({ phone: escapeHTML(phone), role: role, time: new Date().toLocaleString() });
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('mainDashboard').style.display = 'block';
+                    document.getElementById('tabKhata').style.display = 'none';
+                    document.getElementById('tabLogs').style.display = 'none';
+                    document.getElementById('addCategoryBtn').style.display = 'none'; 
+                    document.getElementById('editCategoryBtn').style.display = 'none'; 
+                    document.getElementById('delCategoryBtn').style.display = 'none'; 
+                    updateCategoryDropdown();
+                    loadImagesUI();
+                } else { alert("Kripya sahi 10 digit ka phone number dalein."); }
+            }
+        }
+
+        function switchTab(tab) {
+            document.getElementById('showroomSection').style.display = (tab === 'showroom') ? 'block' : 'none';
+            document.getElementById('khataSection').style.display = (tab === 'khata') ? 'block' : 'none';
+            document.getElementById('logsSection').style.display = (tab === 'logs') ? 'block' : 'none';
+            
+            document.getElementById('tabShowroom').classList.toggle('active', tab === 'showroom');
+            document.getElementById('tabKhata').classList.toggle('active', tab === 'khata');
+            document.getElementById('tabLogs').classList.toggle('active', tab === 'logs');
+            if(tab === 'khata') closePersonDetail();
+        }
+
+        /* ==================== DASHBOARD & GRAPH FUNCTION ==================== */
+        function updateDashboardAndChart() {
+            let totalIncome = 0;
+            let totalExpense = 0;
+            let totalCustomerBusiness = 0;
+            let totalCustomerReceived = 0;
+            
+            cloudKhataData.forEach(e => {
+                let total = parseFloat(e.total) || 0;
+                let paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+
+                if(e.type === 'supplier') {
+                    totalExpense += paid;
+                } else {
+                    totalCustomerBusiness += total;
+                    totalCustomerReceived += paid;
+                    totalIncome += paid;
+                }
+            });
+
+            let bazarUdhari = totalCustomerBusiness - totalCustomerReceived;
+            if(bazarUdhari < 0) bazarUdhari = 0;
+            let cashProfit = totalIncome - totalExpense;
+
+            document.getElementById('dashIncome').innerText = `₹${totalIncome.toFixed(2)}`;
+            document.getElementById('dashExpense').innerText = `₹${totalExpense.toFixed(2)}`;
+            document.getElementById('dashUdhari').innerText = `₹${bazarUdhari.toFixed(2)}`;
+            document.getElementById('dashProfit').innerText = `₹${cashProfit.toFixed(2)}`;
+
+            const ctx = document.getElementById('businessChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income (Aaya)', 'Expense (Gaya)', 'Bazar Udhari', 'Cash Profit'],
+                    datasets: [{
+                        label: 'Amount (₹)',
+                        data: [totalIncome, totalExpense, bazarUdhari, cashProfit],
+                        backgroundColor: ['rgba(34, 197, 94, 0.7)', 'rgba(239, 68, 68, 0.7)', 'rgba(59, 130, 246, 0.7)', 'rgba(245, 158, 11, 0.7)'],
+                        borderColor: ['#16a34a', '#dc2626', '#2563eb', '#d97706'],
+                        borderWidth: 1, borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        /* ==================== CATEGORY MANAGER ==================== */
+        function updateCategoryDropdown() {
+            const select = document.getElementById('itemFilter');
+            const currentVal = select.value;
+            select.innerHTML = '';
+            cloudCategories.forEach(cat => {
+                select.innerHTML += `<option value="${escapeHTML(cat)}">${escapeHTML(cat)}</option>`;
+            });
+            if (cloudCategories.includes(currentVal)) select.value = currentVal;
+            else if (cloudCategories.length > 0) select.value = cloudCategories[0];
+        }
+
+        function addNewCategory() {
+            const newCat = prompt("Naya category ka naam likhein:");
+            if (newCat && newCat.trim() !== "") {
+                const catName = newCat.trim();
+                if (!cloudCategories.includes(catName)) {
+                    cloudCategories.push(catName);
+                    db.ref('showroomCategories').set(cloudCategories);
+                    db.ref('customShowroomImages/' + catName).set([]).then(() => {
+                        updateCategoryDropdown();
+                        document.getElementById('itemFilter').value = catName;
+                        loadImagesUI();
+                    });
+                } else { alert("Ye category pehle se list me hai!"); }
+            }
+        }
+
+        function renameCurrentCategory() {
+            const select = document.getElementById('itemFilter');
+            const oldCatName = select.value;
+            if(!oldCatName) return;
+
+            const newName = prompt(`'${oldCatName}' ka naya naam likhein:`, oldCatName);
+            if(newName && newName.trim() !== "" && newName.trim() !== oldCatName) {
+                const newCatName = newName.trim();
+                document.getElementById('loader').style.display = 'block';
+
+                let existingImages = cloudImagesData[oldCatName] || [];
+                db.ref('customShowroomImages/' + newCatName).set(existingImages).then(() => {
+                    db.ref('customShowroomImages/' + oldCatName).remove();
+                    cloudCategories = cloudCategories.map(c => c === oldCatName ? newCatName : c);
+                    return db.ref('showroomCategories').set(cloudCategories);
+                }).then(() => {
+                    document.getElementById('loader').style.display = 'none';
+                    updateCategoryDropdown();
+                    document.getElementById('itemFilter').value = newCatName;
+                    loadImagesUI();
+                }).catch(err => {
+                    document.getElementById('loader').style.display = 'none';
+                    alert("Error: " + err.message);
+                });
+            }
+        }
+
+        function deleteCurrentCategory() {
+            const select = document.getElementById('itemFilter');
+            const catName = select.value;
+            if(!catName) return;
+            if(confirm(`Kya aap sach me '${catName}' category delete karna chahte hain?`)) {
+                cloudCategories = cloudCategories.filter(c => c !== catName);
+                db.ref('showroomCategories').set(cloudCategories);
+                db.ref('customShowroomImages/' + catName).remove();
+            }
+        }
+
+        function triggerReplace(category, index) {
+            currentReplacingKey = category; currentReplacingIndex = index;
+            document.getElementById('replaceFileInput').click();
+        }
+
+        function triggerAdd(category) {
+            currentAddingKey = category;
+            document.getElementById('addFileInput').click();
+        }
+
+        function uploadImageToFirebase(file, category, indexToReplace = -1) {
+            if (!file.type.startsWith('image/')) {
+                alert("Kripya sirf image (photo) select karein!");
+                document.getElementById('loader').style.display = 'none';
+                return;
+            }
+            try {
+                const refName = 'showroom/' + Date.now() + '_' + file.name;
+                const fileRef = storage.ref().child(refName);
+                fileRef.put(file).then(snapshot => snapshot.ref.getDownloadURL())
+                .then(url => { saveImageUrlToDB(url, category, indexToReplace); })
+                .catch(err => {
+                    console.warn("Storage upload failed, falling back: " + err.message);
+                    fallbackBase64Upload(file, category, indexToReplace);
+                });
+            } catch(e) { fallbackBase64Upload(file, category, indexToReplace); }
+        }
+
+        function fallbackBase64Upload(file, category, indexToReplace) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; let height = img.height;
+                    if (width > 800) { height *= 800 / width; width = 800; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    saveImageUrlToDB(canvas.toDataURL('image/jpeg', 0.7), category, indexToReplace);
+                };
+            };
+        }
+
+        function saveImageUrlToDB(url, category, indexToReplace) {
+            if(!cloudImagesData[category]) cloudImagesData[category] = [];
+            if(indexToReplace > -1) cloudImagesData[category][indexToReplace] = url;
+            else cloudImagesData[category].push(url);
+            db.ref('customShowroomImages/' + category).set(cloudImagesData[category]).then(() => {
+                document.getElementById('loader').style.display = 'none';
+            }).catch(err => {
+                document.getElementById('loader').style.display = 'none'; alert("DB Error: " + err.message);
+            });
+        }
+
+        function handleImageFileChange(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('loader').style.display = 'block';
+            uploadImageToFirebase(file, currentReplacingKey, currentReplacingIndex);
+            e.target.value = '';
+        }
+
+        function handleAddImageFileChange(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('loader').style.display = 'block';
+            uploadImageToFirebase(file, currentAddingKey, -1);
+            e.target.value = '';
+        }
+
+        function deleteImage(category, index) {
+            if(confirm("Kya aap sach me is image ko delete karna chahte hain?")) {
+                cloudImagesData[category].splice(index, 1);
+                db.ref('customShowroomImages/' + category).set(cloudImagesData[category]);
+            }
+        }
+
+        function loadImagesUI() {
+            const item = document.getElementById('itemFilter').value;
+            if(!item) return;
+            const grid = document.getElementById('imageGrid');
+            grid.innerHTML = '';
+            let imgs = cloudImagesData[item] || [];
+            
+            imgs.forEach((imgUrl, index) => {
+                let ownerButtons = '';
+                if(loggedInRole === 'owner') {
+                    ownerButtons = `
+                        <div class="owner-actions">
+                            <button class="btn-replace" onclick="triggerReplace('${escapeHTML(item)}', ${index})" style="background:#2563eb;">✏️ Replace</button>
+                            <button class="btn-delete" onclick="deleteImage('${escapeHTML(item)}', ${index})" style="background:#dc2626;">🗑️ Delete</button>
+                        </div>`;
+                }
+                grid.innerHTML += `
+                    <div class="img-card">
+                        <img src="${escapeHTML(imgUrl)}" onclick="openModal('${escapeHTML(imgUrl)}')">
+                        <div class="img-card-body">
+                            <h3 style="color:#fff;">${escapeHTML(item)} Design #${index + 1}</h3>
+                            <a href="https://wa.me/919304672299?text=Order%20${escapeHTML(item)}%20Design%20${index + 1}" target="_blank">
+                                <button style="background:#16a34a;">🟢 Order on WhatsApp</button>
+                            </a>
+                            ${ownerButtons}
+                        </div>
+                    </div>`;
+            });
+
+            if(loggedInRole === 'owner') {
+                grid.innerHTML += `
+                    <div class="img-card" style="display:flex; justify-content:center; align-items:center; background:rgba(255,255,255,0.05); border: 2px dashed #475569; min-height:240px; cursor:pointer;" onclick="triggerAdd('${escapeHTML(item)}')">
+                        <div style="text-align:center; padding: 20px;">
+                            <div style="font-size: 3rem; color: #94a3b8; margin-bottom: 10px;">+</div>
+                            <h3 style="color:#e2e8f0;">Is Category Me Photo Add Karein</h3>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function openModal(url) {
+            document.getElementById('myModal').style.display = "flex";
+            document.getElementById('imgModalTarget').src = url;
+        }
+        function closeModal() { document.getElementById('myModal').style.display = "none"; }
+
+        /* ==================== ERP LEDGER MASTER CARDS ==================== */
+        function loadLedgerGridUI() {
+            const container = document.getElementById('masterCardsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const filterType = document.getElementById('filterType').value;
+            const searchQuery = document.getElementById('searchName') ? document.getElementById('searchName').value.toLowerCase().trim() : '';
+            const grouped = {};
+
+            cloudKhataData.forEach(e => {
+                const cleanName = (e.name || 'Unknown').trim().toLowerCase();
+                const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
+                const key = cleanName + '_' + cleanPhone;
+                
+                if(!grouped[key]) {
+                    grouped[key] = {
+                        key: key, name: e.name || 'Unknown', phone: e.phone || '', address: e.address || '',
+                        type: e.type || 'customer', totalBusiness: 0, totalReceived: 0, worksCount: 0
+                    };
+                }
+                let total = parseFloat(e.total) || 0;
+                let paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                
+                grouped[key].totalBusiness += total;
+                grouped[key].totalReceived += paid;
+                grouped[key].worksCount += 1;
+            });
+
+            let personList = Object.values(grouped);
+            
+            if(filterType !== 'all') personList = personList.filter(p => p.type === filterType);
+            
+            if(searchQuery !== '') {
+                personList = personList.filter(p => 
+                    p.name.toLowerCase().includes(searchQuery) || 
+                    (p.phone && p.phone.includes(searchQuery))
+                );
+            }
+
+            personList.sort((a, b) => a.name.localeCompare(b.name));
+
+            if(personList.length === 0) {
+                container.innerHTML = `<p style="color:#94a3b8; padding: 20px 0;">Koi Grahak ya Supplier nahi mila.</p>`; return;
+            }
+
+            personList.forEach(p => {
+                let outstanding = (p.totalBusiness - p.totalReceived).toFixed(2);
+                let initial = p.name.charAt(0).toUpperCase();
+                let phoneDisplay = escapeHTML(p.phone) || 'N/A';
+                let waLink = p.phone ? `https://wa.me/91${p.phone.replace(/\D/g, '')}` : '#';
+                
+                container.innerHTML += `
+                    <div class="person-card ${escapeHTML(p.type)}">
+                        <div>
+                            <div class="person-card-top">
+                                <div class="avatar-circle">${escapeHTML(initial)}</div>
+                                <div class="person-name">
+                                    <h3>${escapeHTML(p.name)}</h3>
+                                    <p>📞 ${phoneDisplay} &nbsp;|&nbsp; <span style="text-transform:uppercase; font-size:0.75rem; color:#cbd5e1;">${escapeHTML(p.type)}</span></p>
+                                </div>
+                            </div>
+                            <div class="stats-box">
+                                <div class="stat-item outstanding"><h4>Outstanding</h4><p>₹${outstanding}</p></div>
+                                <div class="stat-item"><h4>Works</h4><p>${p.worksCount}</p></div>
+                            </div>
+                        </div>
+                        <div class="person-actions">
+                            <a href="tel:${escapeHTML(p.phone)}" class="action-icon-btn" title="Call">📞</a>
+                            <a href="${waLink}" target="_blank" class="action-icon-btn" title="WhatsApp" style="background:#16a34a;">💬</a>
+                            <button onclick="openPersonDetail('${p.key}')" class="action-icon-btn" title="View Detail Works" style="background:#3b82f6;">👁️</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        /* ==================== CUSTOMER DETAIL VIEW ==================== */
+        function openPersonDetail(personKey) {
+            currentActivePersonKey = personKey;
+            document.getElementById('ledgerGridView').style.display = 'none';
+            document.getElementById('personDetailView').style.display = 'block';
+            renderPersonDetailView(personKey);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closePersonDetail() {
+            currentActivePersonKey = null;
+            document.getElementById('personDetailView').style.display = 'none';
+            document.getElementById('ledgerGridView').style.display = 'block';
+            loadLedgerGridUI();
+        }
+
+        function renderPersonDetailView(personKey) {
+            const container = document.getElementById('worksCardsContainer');
+            container.innerHTML = '';
+
+            let works = cloudKhataData.filter(e => {
+                const cleanName = (e.name || 'Unknown').trim().toLowerCase();
+                const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
+                return (cleanName + '_' + cleanPhone) === personKey;
+            });
+
+            if(works.length === 0) { closePersonDetail(); return; }
+
+            works.reverse();
+
+            let personName = works[0].name;
+            let pType = works[0].type;
+            let rcvText = pType === 'supplier' ? 'Paid' : 'Received';
+
+            let totalBusiness = 0; let totalReceived = 0;
+
+            works.forEach(w => {
+                totalBusiness += parseFloat(w.total) || 0;
+                totalReceived += (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
+            });
+
+            document.getElementById('detailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
+            document.getElementById('detailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
+            document.getElementById('detailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
+            document.getElementById('detailReceivedText').innerText = rcvText;
+            document.getElementById('detailWorksCount').innerText = works.length;
+            document.getElementById('detailPersonNameTitle').innerText = `${escapeHTML(personName)} - All Works`;
+
+            works.forEach((w, idx) => {
+                let finalAmt = parseFloat(w.total) || 0;
+                let rcvAmt = (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
+                let pendAmt = finalAmt - rcvAmt;
+
+                let title = w.workTitle || w.item || `Work #${idx + 1}`;
+                let cat = w.category || w.type || 'Fabrication';
+                let status = w.status || (pendAmt <= 0 ? 'Delivered' : 'Pending');
+                let badgeClass = (status === 'Delivered') ? 'delivered' : '';
+
+                // NEW: Added Payment Mode to description
+                let payDesc = '';
+                if(w.pay1 > 0) payDesc += `1st: ₹${w.pay1} (${w.date1 || '-'}) ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
+                if(w.pay2 > 0) payDesc += `2nd: ₹${w.pay2} (${w.date2 || '-'}) ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
+                if(w.pay3 > 0) payDesc += `3rd: ₹${w.pay3} (${w.date3 || '-'}) ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''}`;
+                payDesc = payDesc.replace(/ \| $/, '');
+
+                let itemsOverview = '';
+                if(w.items && w.items.length > 0) {
+                    itemsOverview = w.items.map(it => `• ${escapeHTML(it.name)} - ${it.qty} ${escapeHTML(it.unit)}`).join('<br>');
+                } else if(w.item) {
+                    itemsOverview = escapeHTML(w.item);
+                }
+
+                container.innerHTML += `
+                    <div class="work-card">
+                        <div class="work-item-actions">
+                            <button class="work-btn" onclick="generateInvoice('${w.id}')" style="background:#f59e0b; color:black;">📄 Invoice</button>
+                            <button class="work-btn" onclick="editWorkEntry('${w.id}')">✏️ Edit</button>
+                            <button class="work-btn" onclick="deleteWorkEntry('${w.id}')" style="background:#dc2626;">🗑️</button>
+                        </div>
+                        <div class="work-header">
+                            <div>
+                                <h4>${escapeHTML(title)}</h4>
+                                <span class="category-badge">${escapeHTML(cat)} &nbsp;|&nbsp; <small>Date: ${escapeHTML(w.entryDate || '-')}</small></span>
+                            </div>
+                        </div>
+                        <span class="status-badge ${badgeClass}">${escapeHTML(status)}</span>
+                        
+                        <div style="background:#111; padding:10px; border-radius:6px; margin-bottom:12px; font-size: 0.85rem; color:#cbd5e1; line-height: 1.4;">
+                            ${itemsOverview || 'No items listed'}
+                        </div>
+
+                        <div class="work-amounts-grid">
+                            <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
+                            <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
+                            <div class="amt-box pending"><h5>Pending</h5><p>₹${pendAmt.toFixed(2)}</p></div>
+                        </div>
+                        <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function printPersonDetail() { window.print(); }
+
+        /* ==================== INVOICE GENERATOR LOGIC ==================== */
+        function generateInvoice(workId) {
+            const w = cloudKhataData.find(e => e.id === workId);
+            if(!w) return;
+
+            let invoiceNo = "WK" + Date.now().toString().slice(-5);
+            let rawDate = w.entryDate || new Date().toISOString().split('T')[0];
+            let dParts = rawDate.split('-');
+            let formattedDate = dParts.length === 3 ? `${dParts[2]}-${dParts[1]}-${dParts[0]}` : rawDate;
+
+            // Gather Unique Payment Modes
+            let modes = [];
+            if(w.pay1 > 0 && w.payMode1) modes.push(w.payMode1);
+            if(w.pay2 > 0 && w.payMode2) modes.push(w.payMode2);
+            if(w.pay3 > 0 && w.payMode3) modes.push(w.payMode3);
+            let uniqueModes = [...new Set(modes)].join(' + ');
+
+            let rcvText = w.type === 'supplier' ? 'Amount Paid' : 'Amount Received';
+            if(uniqueModes) rcvText += ` (${escapeHTML(uniqueModes)})`;
+
+            let itemsHtml = ''; let subtotal = 0;
+            if(w.items && w.items.length > 0) {
+                w.items.forEach(it => {
+                    let amt = it.amount || ((it.qty || 0) * (it.rate || 0));
+                    itemsHtml += `<tr><td>${escapeHTML(it.name)}</td><td>${it.qty} ${escapeHTML(it.unit)}</td><td>₹${it.rate}</td><td>₹${amt.toFixed(2)}</td></tr>`;
+                    subtotal += amt;
+                });
+            } else {
+                let amt = (w.qty || 0) * (w.rate || 0);
+                itemsHtml += `<tr><td>${escapeHTML(w.item || w.workTitle || 'Fabrication Work')}</td><td>${w.qty || '-'}</td><td>₹${w.rate || '-'}</td><td>₹${amt.toFixed(2)}</td></tr>`;
+                subtotal += amt;
+            }
+
+            let chargesHtml = '';
+            if((w.labour || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Labour Charge</td><td>₹${w.labour}</td></tr>`;
+            if((w.transport || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Transport Charge</td><td>₹${w.transport}</td></tr>`;
+            if((w.installation || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Installation Charge</td><td>₹${w.installation}</td></tr>`;
+            if((w.otherCharges || 0) > 0) chargesHtml += `<tr><td colspan="3" style="text-align:right;">Other Charges</td><td>₹${w.otherCharges}</td></tr>`;
+            let discHtml = '';
+            if((w.discount || 0) > 0) discHtml = `<tr><td colspan="3" style="text-align:right;">Discount</td><td>- ₹${w.discount}</td></tr>`;
+
+            let finalTotal = w.total || 0;
+            let rcvAmt = (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
+            let pending = finalTotal - rcvAmt;
+
+            const printHtml = `
+                <div class="inv-header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="inv-logo-box">CT</div>
+                        <div style="font-size: 28px; font-weight: 900; color: #1e293b;">Chakradhari Traders</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="inv-title">INVOICE</div>
+                        <div style="font-size: 14px; color: #475569;">Invoice No: <b style="color:#0f172a;">${invoiceNo}</b></div>
+                        <div style="font-size: 14px; color: #475569;">Date: <b style="color:#0f172a;">${formattedDate}</b></div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom: 25px;">
+                    <div class="inv-box" style="width: 45%;">
+                        <strong style="color: #64748b; font-size: 12px; letter-spacing: 1px;">BILL TO:</strong><br>
+                        <h3 style="margin: 5px 0; color: #0f172a; font-size: 20px;">${escapeHTML(w.name)}</h3>
+                        <div style="color: #334155; font-size: 14px;">
+                            ${w.phone ? `Phone: ${escapeHTML(w.phone)}<br>` : ''}
+                            ${w.address ? `Address: ${escapeHTML(w.address)}` : ''}
+                        </div>
+                    </div>
+                    <div class="inv-box" style="width: 45%; text-align:right;">
+                        <strong style="color: #64748b; font-size: 12px; letter-spacing: 1px;">FROM:</strong><br>
+                        <h3 style="margin: 5px 0; color: #0f172a; font-size: 20px;">Chakradhari Traders</h3>
+                        <div style="color: #334155; font-size: 14px;">
+                            Nayagaon Bariyarpur, Vaishali<br>
+                            Bihar (844506)<br>
+                            Phone: 9304672299
+                        </div>
+                    </div>
+                </div>
+                <table class="inv-table">
+                    <thead><tr><th>Item Description</th><th>Qty / Unit</th><th>Rate</th><th>Amount</th></tr></thead>
+                    <tbody>
+                        ${itemsHtml}
+                        <tr><td colspan="3" style="text-align:right; font-weight:bold;">Subtotal</td><td style="font-weight:bold;">₹${subtotal.toFixed(2)}</td></tr>
+                        ${chargesHtml}
+                        ${discHtml}
+                        <tr class="inv-summary-row"><td colspan="3" style="text-align:right; font-size: 18px;">Final Total</td><td style="font-size: 18px;">₹${finalTotal.toFixed(2)}</td></tr>
+                        <tr><td colspan="3" style="text-align:right; color:#16a34a; font-weight:bold;">${rcvText}</td><td style="color:#16a34a; font-weight:bold;">₹${rcvAmt.toFixed(2)}</td></tr>
+                        <tr><td colspan="3" style="text-align:right; color:#dc2626; font-weight:bold;">Pending Balance</td><td style="color:#dc2626; font-weight:bold;">₹${pending.toFixed(2)}</td></tr>
+                    </tbody>
+                </table>
+                <div class="inv-footer-msg">Thank you for your business! - Chakradhari Traders ERP</div>
+            `;
+            document.getElementById('invoicePrintArea').innerHTML = printHtml;
+            window.print();
+        }
+
+        /* ==================== WORK MODAL (MULTIPLE ITEMS & CALCULATION) ==================== */
+        function addWorkItemRow(name='', qty='', unit='KG', rate='', amount='') {
+            const list = document.getElementById('workItemsList');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div class="item-row-header">
+                    <span style="color:#94a3b8; font-size:0.8rem; font-weight:bold;">Item Detail</span>
+                    <button type="button" class="del-item-btn" onclick="this.parentElement.parentElement.remove(); calcWorkTotal();">🗑️ Remove</button>
+                </div>
+                <input type="text" class="itemName" placeholder="Item Name (e.g., Gate Frame)" value="${escapeHTML(name)}">
+                <div class="item-grid" style="margin-top:6px;">
+                    <input type="number" class="itemQty" placeholder="Qty" value="${qty}" oninput="calcWorkTotal()">
+                    <select class="itemUnit" style="margin:0;">
+                        <option value="KG" ${unit==='KG'?'selected':''}>KG</option>
+                        <option value="Pcs" ${unit==='Pcs'?'selected':''}>Pcs</option>
+                        <option value="Feet" ${unit==='Feet'?'selected':''}>Feet</option>
+                        <option value="Sq.Feet" ${unit==='Sq.Feet'?'selected':''}>Sq.Feet</option>
+                        <option value="Ltr" ${unit==='Ltr'?'selected':''}>Ltr</option>
+                        <option value="Set" ${unit==='Set'?'selected':''}>Set</option>
+                    </select>
+                    <input type="number" class="itemRate" placeholder="Rate (₹)" value="${rate}" oninput="calcWorkTotal()">
+                </div>
+                <input type="number" class="itemAmount" placeholder="Amount" value="${amount}" readonly style="margin-top:6px; border-color:#334155; color:#4ade80;">
+            `;
+            list.appendChild(row);
+        }
+
+        function calcWorkTotal() {
+            let subtotal = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                let q = parseFloat(row.querySelector('.itemQty').value) || 0;
+                let r = parseFloat(row.querySelector('.itemRate').value) || 0;
+                let amt = q * r;
+                row.querySelector('.itemAmount').value = amt.toFixed(2);
+                subtotal += amt;
+            });
+            
+            let l = parseFloat(document.getElementById('kLabour').value) || 0;
+            let t = parseFloat(document.getElementById('kTransport').value) || 0;
+            let i = parseFloat(document.getElementById('kInstallation').value) || 0;
+            let o = parseFloat(document.getElementById('kOther').value) || 0;
+            let d = parseFloat(document.getElementById('kDiscount').value) || 0;
+            
+            let finalTotal = subtotal + l + t + i + o - d;
+            if(finalTotal < 0) finalTotal = 0;
+            finalTotal = Math.round(finalTotal * 100) / 100;
+
+            document.getElementById('kTotal').value = finalTotal;
+            document.getElementById('kGrandTotalLabel').innerText = finalTotal.toFixed(2);
+        }
+
+        function openWorkModalForCurrentPerson() {
+            if(!currentActivePersonKey) return;
+            resetWorkModal();
+            const works = cloudKhataData.filter(e => {
+                const k = (e.name || 'Unknown').trim().toLowerCase() + '_' + (e.phone || '').trim().replace(/\D/g, '');
+                return k === currentActivePersonKey;
+            });
+            if(works.length > 0) {
+                document.getElementById('kName').value = works[0].name || '';
+                document.getElementById('kPhone').value = works[0].phone || '';
+                document.getElementById('kAddress').value = works[0].address || '';
+                document.getElementById('khataType').value = works[0].type || 'customer';
+                toggleKhataFields();
+            }
+            document.getElementById('workModalTitle').innerText = "Naya Kaam Jodein: " + document.getElementById('kName').value;
+            addWorkItemRow();
+            document.getElementById('workModal').style.display = 'flex';
+        }
+
+        function openWorkModalForNewPerson() {
+            resetWorkModal();
+            document.getElementById('workModalTitle').innerText = "Naya Grahak / Kaam Jodein";
+            addWorkItemRow(); 
+            document.getElementById('workModal').style.display = 'flex';
+        }
+
+        function closeWorkModal() {
+            document.getElementById('workModal').style.display = 'none';
+            resetWorkModal();
+        }
+
+        function toggleKhataFields() {
+            const type = document.getElementById('khataType').value;
+            document.getElementById('kAddress').style.display = 'block';
+            document.getElementById('paymentLabelText').innerText = (type === 'supplier') ? 'Payment Given (Paisa Diya):' : 'Payment Received (Paisa mila):';
+        }
+
+        function saveWorkEntry() {
+            const name = document.getElementById('kName').value.trim();
+            if(!name) { alert("Kripya Naam likhein!"); return; }
+
+            const editId = document.getElementById('editEntryId').value;
+            const today = new Date().toISOString().split('T')[0];
+
+            let workItems = [];
+            document.querySelectorAll('.item-row').forEach(row => {
+                let n = row.querySelector('.itemName').value.trim();
+                if(n) {
+                    workItems.push({
+                        name: n,
+                        qty: parseFloat(row.querySelector('.itemQty').value) || 0,
+                        unit: row.querySelector('.itemUnit').value || 'KG',
+                        rate: parseFloat(row.querySelector('.itemRate').value) || 0,
+                        amount: parseFloat(row.querySelector('.itemAmount').value) || 0
+                    });
+                }
+            });
+
+            const entry = {
+                entryDate: today,
+                type: document.getElementById('khataType').value,
+                name: name,
+                phone: document.getElementById('kPhone').value,
+                address: document.getElementById('kAddress').value,
+                workTitle: document.getElementById('kWorkTitle').value || 'Work Item',
+                category: document.getElementById('kCategory').value || 'Fabrication',
+                status: document.getElementById('kStatus').value || 'Delivered',
+                items: workItems,
+                labour: parseFloat(document.getElementById('kLabour').value) || 0,
+                transport: parseFloat(document.getElementById('kTransport').value) || 0,
+                installation: parseFloat(document.getElementById('kInstallation').value) || 0,
+                otherCharges: parseFloat(document.getElementById('kOther').value) || 0,
+                discount: parseFloat(document.getElementById('kDiscount').value) || 0,
+                total: parseFloat(document.getElementById('kTotal').value) || 0,
+                
+                date1: document.getElementById('kDate1').value,
+                pay1: parseFloat(document.getElementById('kPay1').value) || 0,
+                payMode1: document.getElementById('kPayMode1').value,
+                
+                date2: document.getElementById('kDate2').value,
+                pay2: parseFloat(document.getElementById('kPay2').value) || 0,
+                payMode2: document.getElementById('kPayMode2').value,
+                
+                date3: document.getElementById('kDate3').value,
+                pay3: parseFloat(document.getElementById('kPay3').value) || 0,
+                payMode3: document.getElementById('kPayMode3').value,
+                
+                note: document.getElementById('kNote').value
+            };
+
+            if(editId) {
+                db.ref('shopKhata/' + editId).update(entry).then(() => {
+                    alert("Work successfully updated! ✅");
+                    closeWorkModal();
+                });
+            } else {
+                db.ref('shopKhata').push(entry).then(() => {
+                    alert("Naya Work successfully save ho gaya! ✅");
+                    closeWorkModal();
+                });
+            }
+        }
+
+        function editWorkEntry(id) {
+            const item = cloudKhataData.find(e => e.id === id);
+            if(!item) return;
+
+            resetWorkModal();
+            document.getElementById('editEntryId').value = item.id;
+            document.getElementById('khataType').value = item.type || 'customer';
+            toggleKhataFields();
+            document.getElementById('kName').value = item.name || '';
+            document.getElementById('kPhone').value = item.phone || '';
+            document.getElementById('kAddress').value = item.address || '';
+            document.getElementById('kWorkTitle').value = item.workTitle || '';
+            document.getElementById('kCategory').value = item.category || '';
+            document.getElementById('kStatus').value = item.status || 'Delivered';
+            
+            const list = document.getElementById('workItemsList');
+            if(item.items && item.items.length > 0) {
+                item.items.forEach(it => { addWorkItemRow(it.name, it.qty, it.unit, it.rate, it.amount); });
+            } else {
+                addWorkItemRow(item.item, item.qty, 'KG', item.rate, (item.qty||0)*(item.rate||0));
+            }
+
+            document.getElementById('kLabour').value = item.labour || '';
+            document.getElementById('kTransport').value = item.transport || '';
+            document.getElementById('kInstallation').value = item.installation || '';
+            document.getElementById('kOther').value = item.otherCharges || '';
+            document.getElementById('kDiscount').value = item.discount || '';
+            
+            calcWorkTotal(); 
+
+            document.getElementById('kDate1').value = item.date1 || '';
+            document.getElementById('kPay1').value = item.pay1 || '';
+            document.getElementById('kPayMode1').value = item.payMode1 || '';
+            
+            document.getElementById('kDate2').value = item.date2 || '';
+            document.getElementById('kPay2').value = item.pay2 || '';
+            document.getElementById('kPayMode2').value = item.payMode2 || '';
+            
+            document.getElementById('kDate3').value = item.date3 || '';
+            document.getElementById('kPay3').value = item.pay3 || '';
+            document.getElementById('kPayMode3').value = item.payMode3 || '';
+            
+            document.getElementById('kNote').value = item.note || '';
+
+            document.getElementById('workModalTitle').innerText = "Edit Work: " + item.name;
+            document.getElementById('workModal').style.display = 'flex';
+        }
+
+        function deleteWorkEntry(id) {
+            if(confirm("Kya aap sach me is work entry ko delete karna chahte hain?")) {
+                db.ref('shopKhata/' + id).remove();
+            }
+        }
+
+        function resetWorkModal() {
+            document.getElementById('editEntryId').value = '';
+            document.getElementById('kName').value = '';
+            document.getElementById('kPhone').value = '';
+            document.getElementById('kAddress').value = '';
+            document.getElementById('kWorkTitle').value = '';
+            document.getElementById('kCategory').value = '';
+            document.getElementById('kStatus').value = 'Delivered';
+            document.getElementById('workItemsList').innerHTML = ''; 
+            document.getElementById('kLabour').value = '';
+            document.getElementById('kTransport').value = '';
+            document.getElementById('kInstallation').value = '';
+            document.getElementById('kOther').value = '';
+            document.getElementById('kDiscount').value = '';
+            document.getElementById('kTotal').value = '0';
+            document.getElementById('kGrandTotalLabel').innerText = '0.00';
+            
+            document.getElementById('kDate1').value = '';
+            document.getElementById('kPay1').value = '';
+            document.getElementById('kPayMode1').value = '';
+            
+            document.getElementById('kDate2').value = '';
+            document.getElementById('kPay2').value = '';
+            document.getElementById('kPayMode2').value = '';
+            
+            document.getElementById('kDate3').value = '';
+            document.getElementById('kPay3').value = '';
+            document.getElementById('kPayMode3').value = '';
+            
+            document.getElementById('kNote').value = '';
+        }
+
+        function loadLogsUI() {
+            const display = document.getElementById('logDisplay');
+            display.innerHTML = '';
+            let logs = [...cloudLogsData].reverse();
+            logs.forEach(l => {
+                display.innerHTML += `<p style="padding:8px; border-bottom:1px solid #334155;">⏱️ <b>${escapeHTML(l.time)}</b> -> Role: ${escapeHTML(l.role).toUpperCase()} | Phone: <b>${escapeHTML(l.phone)}</b></p>`;
+            });
+        }
+
+        function logout() {
+            localStorage.setItem('isOwnerLoggedIn', 'false');
+            localStorage.setItem('ownerSessionExpire', '0');
+            loggedInRole = 'customer';
+            document.getElementById('mainDashboard').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('addCategoryBtn').style.display = 'none'; 
+            document.getElementById('editCategoryBtn').style.display = 'none'; 
+            document.getElementById('delCategoryBtn').style.display = 'none'; 
+        }
+    </script>
 </body>
 </html>
