@@ -123,7 +123,6 @@
         .modal-close { position: absolute; top: 12px; right: 18px; font-size: 1.8rem; color: #94a3b8; cursor: pointer; }
         
         .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        /* Payment Row Grid Updated for 3 Columns (Date, Amount, Mode) */
         .payment-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 5px; }
         
         .logout-btn { background: #475569; width: auto; padding: 8px 15px; margin-top: 10px; }
@@ -687,25 +686,7 @@
             document.getElementById('addFileInput').click();
         }
 
-        function uploadImageToFirebase(file, category, indexToReplace = -1) {
-            if (!file.type.startsWith('image/')) {
-                alert("Kripya sirf image (photo) select karein!");
-                document.getElementById('loader').style.display = 'none';
-                return;
-            }
-            try {
-                const refName = 'showroom/' + Date.now() + '_' + file.name;
-                const fileRef = storage.ref().child(refName);
-                fileRef.put(file).then(snapshot => snapshot.ref.getDownloadURL())
-                .then(url => { saveImageUrlToDB(url, category, indexToReplace); })
-                .catch(err => {
-                    console.warn("Storage upload failed, falling back: " + err.message);
-                    fallbackBase64Upload(file, category, indexToReplace);
-                });
-            } catch(e) { fallbackBase64Upload(file, category, indexToReplace); }
-        }
-
-        function fallbackBase64Upload(file, category, indexToReplace) {
+        function compressAndSaveImage(file, callback) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function(event) {
@@ -718,36 +699,43 @@
                     canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    saveImageUrlToDB(canvas.toDataURL('image/jpeg', 0.7), category, indexToReplace);
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
                 };
             };
-        }
-
-        function saveImageUrlToDB(url, category, indexToReplace) {
-            if(!cloudImagesData[category]) cloudImagesData[category] = [];
-            if(indexToReplace > -1) cloudImagesData[category][indexToReplace] = url;
-            else cloudImagesData[category].push(url);
-            db.ref('customShowroomImages/' + category).set(cloudImagesData[category]).then(() => {
-                document.getElementById('loader').style.display = 'none';
-            }).catch(err => {
-                document.getElementById('loader').style.display = 'none'; alert("DB Error: " + err.message);
-            });
         }
 
         function handleImageFileChange(e) {
             const file = e.target.files[0];
             if (!file) return;
             document.getElementById('loader').style.display = 'block';
-            uploadImageToFirebase(file, currentReplacingKey, currentReplacingIndex);
-            e.target.value = '';
+            compressAndSaveImage(file, function(compressedImage) {
+                if(!cloudImagesData[currentReplacingKey]) cloudImagesData[currentReplacingKey] = [];
+                cloudImagesData[currentReplacingKey][currentReplacingIndex] = compressedImage;
+                db.ref('customShowroomImages/' + currentReplacingKey).set(cloudImagesData[currentReplacingKey]).then(() => {
+                    document.getElementById('loader').style.display = 'none'; 
+                    e.target.value = '';
+                }).catch(err => {
+                    document.getElementById('loader').style.display = 'none'; 
+                    alert("DB Error: " + err.message);
+                });
+            });
         }
 
         function handleAddImageFileChange(e) {
             const file = e.target.files[0];
             if (!file) return;
             document.getElementById('loader').style.display = 'block';
-            uploadImageToFirebase(file, currentAddingKey, -1);
-            e.target.value = '';
+            compressAndSaveImage(file, function(compressedImage) {
+                if(!cloudImagesData[currentAddingKey]) cloudImagesData[currentAddingKey] = [];
+                cloudImagesData[currentAddingKey].push(compressedImage);
+                db.ref('customShowroomImages/' + currentAddingKey).set(cloudImagesData[currentAddingKey]).then(() => {
+                    document.getElementById('loader').style.display = 'none'; 
+                    e.target.value = '';
+                }).catch(err => {
+                    document.getElementById('loader').style.display = 'none'; 
+                    alert("DB Error: " + err.message);
+                });
+            });
         }
 
         function deleteImage(category, index) {
