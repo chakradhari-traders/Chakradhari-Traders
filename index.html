@@ -123,7 +123,6 @@
         .modal-close { position: absolute; top: 12px; right: 18px; font-size: 1.8rem; color: #94a3b8; cursor: pointer; }
         
         .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .payment-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; margin-bottom: 5px; }
         
         .logout-btn { background: #475569; width: auto; padding: 8px 15px; margin-top: 10px; }
         .hidden-file-input { display: none; }
@@ -282,7 +281,7 @@
 
                 <div class="detail-banner">
                     <h2 id="detailOutstandingAmt">₹0</h2>
-                    <div class="subtitle">Outstanding</div>
+                    <div class="subtitle" id="detailOutstandingLabel">Outstanding</div>
                     <div class="banner-stats-grid">
                         <div class="banner-stat-card"><h3 id="detailBusinessAmt">₹0</h3><p>Business</p></div>
                         <div class="banner-stat-card"><h3 id="detailReceivedAmt">₹0</h3><p id="detailReceivedText">Received</p></div>
@@ -362,38 +361,13 @@
             </div>
             <input type="hidden" id="kTotal" value="0">
 
-            <!-- PAYMENT WITH MODE -->
+            <!-- UNLIMITED PAYMENT WITH MODE -->
             <label id="paymentLabelText" style="font-size: 0.85rem; color: #94a3b8; margin-top: 15px; display: block;">Payment Details (Paisa mila/diya):</label>
-            <div class="payment-row">
-                <input type="date" id="kDate1">
-                <input type="number" id="kPay1" placeholder="1st Amount">
-                <select id="kPayMode1" style="margin:0;">
-                    <option value="">Mode</option>
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Bank">Bank</option>
-                </select>
-            </div>
-            <div class="payment-row">
-                <input type="date" id="kDate2">
-                <input type="number" id="kPay2" placeholder="2nd Amount">
-                <select id="kPayMode2" style="margin:0;">
-                    <option value="">Mode</option>
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Bank">Bank</option>
-                </select>
-            </div>
-            <div class="payment-row">
-                <input type="date" id="kDate3">
-                <input type="number" id="kPay3" placeholder="3rd Amount">
-                <select id="kPayMode3" style="margin:0;">
-                    <option value="">Mode</option>
-                    <option value="Cash">Cash</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Bank">Bank</option>
-                </select>
-            </div>
+            
+            <!-- Dynamic Payments Container -->
+            <div id="dynamicPaymentsContainer"></div>
+            
+            <button type="button" onclick="addPaymentRow()" style="background: #16a34a; padding: 8px; font-size: 0.85rem; margin-bottom: 15px;">+ Add New Payment</button>
 
             <textarea id="kNote" placeholder="Koi special note likhna hai?"></textarea>
             <button onclick="saveWorkEntry()" style="background: var(--green); padding: 14px; font-size: 1.1rem;">✅ Kaam Save Karo</button>
@@ -567,7 +541,15 @@
             
             cloudKhataData.forEach(e => {
                 let total = parseFloat(e.total) || 0;
-                let paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                let paid = 0;
+                
+                // Naya Unlimited Payments wala logic
+                if(e.paymentsList) {
+                    e.paymentsList.forEach(pmt => paid += parseFloat(pmt.amount) || 0);
+                } else {
+                    // Purana logic (backward compatibility)
+                    paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                }
 
                 if(e.type === 'supplier') {
                     totalExpense += paid;
@@ -813,7 +795,12 @@
                     };
                 }
                 let total = parseFloat(e.total) || 0;
-                let paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                let paid = 0;
+                if(e.paymentsList) {
+                    e.paymentsList.forEach(pmt => paid += parseFloat(pmt.amount) || 0);
+                } else {
+                    paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                }
                 
                 grouped[key].totalBusiness += total;
                 grouped[key].totalReceived += paid;
@@ -843,6 +830,11 @@
                 let phoneDisplay = escapeHTML(p.phone) || 'N/A';
                 let waLink = p.phone ? `https://wa.me/91${p.phone.replace(/\D/g, '')}` : '#';
                 
+                // Naya Receivable / Payable Label
+                let outLabel = "Outstanding";
+                if(p.type === 'customer') outLabel = "Receivable";
+                else if(p.type === 'supplier') outLabel = "Payable";
+
                 container.innerHTML += `
                     <div class="person-card ${escapeHTML(p.type)}">
                         <div>
@@ -854,7 +846,7 @@
                                 </div>
                             </div>
                             <div class="stats-box">
-                                <div class="stat-item outstanding"><h4>Outstanding</h4><p>₹${outstanding}</p></div>
+                                <div class="stat-item outstanding"><h4>${outLabel}</h4><p>₹${outstanding}</p></div>
                                 <div class="stat-item"><h4>Works</h4><p>${p.worksCount}</p></div>
                             </div>
                         </div>
@@ -905,10 +897,20 @@
 
             works.forEach(w => {
                 totalBusiness += parseFloat(w.total) || 0;
-                totalReceived += (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
+                if(w.paymentsList) {
+                    w.paymentsList.forEach(pmt => totalReceived += parseFloat(pmt.amount) || 0);
+                } else {
+                    totalReceived += (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
+                }
             });
 
-            document.getElementById('detailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
+            // Naya Receivable / Payable Label
+            let outLabel = "Outstanding";
+            if(pType === 'customer') outLabel = "Receivable";
+            else if(pType === 'supplier') outLabel = "Payable";
+
+            document.getElementById('detailOutstandingLabel').innerText = outLabel;
+            document.getElementById('detailOutstandingAmt').innerText = `₹${Math.abs(totalBusiness - totalReceived).toFixed(2)}`;
             document.getElementById('detailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
             document.getElementById('detailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
             document.getElementById('detailReceivedText').innerText = rcvText;
@@ -917,20 +919,32 @@
 
             works.forEach((w, idx) => {
                 let finalAmt = parseFloat(w.total) || 0;
-                let rcvAmt = (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
-                let pendAmt = finalAmt - rcvAmt;
+                let rcvAmt = 0;
+                let payDesc = '';
 
+                // Load payments properly
+                if(w.paymentsList) {
+                    w.paymentsList.forEach((pmt, i) => {
+                        let pa = parseFloat(pmt.amount)||0;
+                        rcvAmt += pa;
+                        if(pa > 0) payDesc += `Pay ${i+1}: ₹${pa} (${pmt.date || '-'}) ${pmt.mode ? '['+escapeHTML(pmt.mode)+']' : ''} | `;
+                    });
+                } else {
+                    let pa1 = parseFloat(w.pay1)||0, pa2 = parseFloat(w.pay2)||0, pa3 = parseFloat(w.pay3)||0;
+                    rcvAmt = pa1 + pa2 + pa3;
+                    if(pa1 > 0) payDesc += `1st: ₹${pa1} (${w.date1 || '-'}) ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
+                    if(pa2 > 0) payDesc += `2nd: ₹${pa2} (${w.date2 || '-'}) ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
+                    if(pa3 > 0) payDesc += `3rd: ₹${pa3} (${w.date3 || '-'}) ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''} | `;
+                }
+                payDesc = payDesc.replace(/ \| $/, '');
+
+                let pendAmt = finalAmt - rcvAmt;
                 let title = w.workTitle || w.item || `Work #${idx + 1}`;
                 let cat = w.category || w.type || 'Fabrication';
                 let status = w.status || (pendAmt <= 0 ? 'Delivered' : 'Pending');
                 let badgeClass = (status === 'Delivered') ? 'delivered' : '';
 
-                // NEW: Added Payment Mode to description
-                let payDesc = '';
-                if(w.pay1 > 0) payDesc += `1st: ₹${w.pay1} (${w.date1 || '-'}) ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
-                if(w.pay2 > 0) payDesc += `2nd: ₹${w.pay2} (${w.date2 || '-'}) ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
-                if(w.pay3 > 0) payDesc += `3rd: ₹${w.pay3} (${w.date3 || '-'}) ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''}`;
-                payDesc = payDesc.replace(/ \| $/, '');
+                let pendLabel = w.type === 'customer' ? 'Receivable' : 'Payable';
 
                 let itemsOverview = '';
                 if(w.items && w.items.length > 0) {
@@ -961,7 +975,7 @@
                         <div class="work-amounts-grid">
                             <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
                             <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
-                            <div class="amt-box pending"><h5>Pending</h5><p>₹${pendAmt.toFixed(2)}</p></div>
+                            <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${Math.abs(pendAmt).toFixed(2)}</p></div>
                         </div>
                         <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
                     </div>
@@ -983,9 +997,20 @@
 
             // Gather Unique Payment Modes
             let modes = [];
-            if(w.pay1 > 0 && w.payMode1) modes.push(w.payMode1);
-            if(w.pay2 > 0 && w.payMode2) modes.push(w.payMode2);
-            if(w.pay3 > 0 && w.payMode3) modes.push(w.payMode3);
+            let rcvAmt = 0;
+            if(w.paymentsList) {
+                w.paymentsList.forEach(pmt => {
+                    let pa = parseFloat(pmt.amount)||0;
+                    rcvAmt += pa;
+                    if(pa > 0 && pmt.mode) modes.push(pmt.mode);
+                });
+            } else {
+                let pa1 = parseFloat(w.pay1)||0, pa2 = parseFloat(w.pay2)||0, pa3 = parseFloat(w.pay3)||0;
+                rcvAmt = pa1 + pa2 + pa3;
+                if(pa1 > 0 && w.payMode1) modes.push(w.payMode1);
+                if(pa2 > 0 && w.payMode2) modes.push(w.payMode2);
+                if(pa3 > 0 && w.payMode3) modes.push(w.payMode3);
+            }
             let uniqueModes = [...new Set(modes)].join(' + ');
 
             let rcvText = w.type === 'supplier' ? 'Amount Paid' : 'Amount Received';
@@ -1013,7 +1038,6 @@
             if((w.discount || 0) > 0) discHtml = `<tr><td colspan="3" style="text-align:right;">Discount</td><td>- ₹${w.discount}</td></tr>`;
 
             let finalTotal = w.total || 0;
-            let rcvAmt = (parseFloat(w.pay1) || 0) + (parseFloat(w.pay2) || 0) + (parseFloat(w.pay3) || 0);
             let pending = finalTotal - rcvAmt;
 
             const printHtml = `
@@ -1117,6 +1141,26 @@
             document.getElementById('kGrandTotalLabel').innerText = finalTotal.toFixed(2);
         }
 
+        /* ==================== UNLIMITED PAYMENTS LOGIC ==================== */
+        function addPaymentRow(date='', amt='', mode='') {
+            const container = document.getElementById('dynamicPaymentsContainer');
+            const row = document.createElement('div');
+            row.className = 'payment-row payment-row-dynamic';
+            row.style = 'display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px;';
+            row.innerHTML = `
+                <input type="date" class="payDate" value="${escapeHTML(date)}">
+                <input type="number" class="payAmt" placeholder="Amount" value="${amt}">
+                <select class="payMode" style="margin:0;">
+                    <option value="">Mode</option>
+                    <option value="Cash" ${mode==='Cash'?'selected':''}>Cash</option>
+                    <option value="UPI" ${mode==='UPI'?'selected':''}>UPI</option>
+                    <option value="Bank" ${mode==='Bank'?'selected':''}>Bank</option>
+                </select>
+                <button type="button" onclick="this.parentElement.remove()" style="background:var(--red); border:none; border-radius:6px; color:white; font-size:1rem; cursor:pointer;">🗑️</button>
+            `;
+            container.appendChild(row);
+        }
+
         function openWorkModalForCurrentPerson() {
             if(!currentActivePersonKey) return;
             resetWorkModal();
@@ -1133,6 +1177,7 @@
             }
             document.getElementById('workModalTitle').innerText = "Naya Kaam Jodein: " + document.getElementById('kName').value;
             addWorkItemRow();
+            addPaymentRow(); // 1 empty row
             document.getElementById('workModal').style.display = 'flex';
         }
 
@@ -1140,6 +1185,7 @@
             resetWorkModal();
             document.getElementById('workModalTitle').innerText = "Naya Grahak / Kaam Jodein";
             addWorkItemRow(); 
+            addPaymentRow(); // 1 empty row
             document.getElementById('workModal').style.display = 'flex';
         }
 
@@ -1175,6 +1221,17 @@
                 }
             });
 
+            // Naya Payment Loop Array
+            let paymentsArr = [];
+            document.querySelectorAll('.payment-row-dynamic').forEach(row => {
+                let d = row.querySelector('.payDate').value;
+                let a = parseFloat(row.querySelector('.payAmt').value) || 0;
+                let m = row.querySelector('.payMode').value;
+                if(a > 0) {
+                    paymentsArr.push({ date: d, amount: a, mode: m });
+                }
+            });
+
             const entry = {
                 entryDate: today,
                 type: document.getElementById('khataType').value,
@@ -1191,20 +1248,13 @@
                 otherCharges: parseFloat(document.getElementById('kOther').value) || 0,
                 discount: parseFloat(document.getElementById('kDiscount').value) || 0,
                 total: parseFloat(document.getElementById('kTotal').value) || 0,
+                note: document.getElementById('kNote').value,
                 
-                date1: document.getElementById('kDate1').value,
-                pay1: parseFloat(document.getElementById('kPay1').value) || 0,
-                payMode1: document.getElementById('kPayMode1').value,
-                
-                date2: document.getElementById('kDate2').value,
-                pay2: parseFloat(document.getElementById('kPay2').value) || 0,
-                payMode2: document.getElementById('kPayMode2').value,
-                
-                date3: document.getElementById('kDate3').value,
-                pay3: parseFloat(document.getElementById('kPay3').value) || 0,
-                payMode3: document.getElementById('kPayMode3').value,
-                
-                note: document.getElementById('kNote').value
+                // Naya Unlimited Payments Field (Purana wala set as null to wipe out)
+                paymentsList: paymentsArr,
+                pay1: null, payMode1: null, date1: null,
+                pay2: null, payMode2: null, date2: null,
+                pay3: null, payMode3: null, date3: null
             };
 
             if(editId) {
@@ -1247,21 +1297,24 @@
             document.getElementById('kInstallation').value = item.installation || '';
             document.getElementById('kOther').value = item.otherCharges || '';
             document.getElementById('kDiscount').value = item.discount || '';
-            
             calcWorkTotal(); 
 
-            document.getElementById('kDate1').value = item.date1 || '';
-            document.getElementById('kPay1').value = item.pay1 || '';
-            document.getElementById('kPayMode1').value = item.payMode1 || '';
+            // Load payments logic
+            document.getElementById('dynamicPaymentsContainer').innerHTML = '';
+            if(item.paymentsList && item.paymentsList.length > 0) {
+                item.paymentsList.forEach(pmt => addPaymentRow(pmt.date, pmt.amount, pmt.mode));
+            } else {
+                // Backward compatibility load for older entries
+                if(item.pay1 > 0) addPaymentRow(item.date1, item.pay1, item.payMode1);
+                if(item.pay2 > 0) addPaymentRow(item.date2, item.pay2, item.payMode2);
+                if(item.pay3 > 0) addPaymentRow(item.date3, item.pay3, item.payMode3);
+            }
             
-            document.getElementById('kDate2').value = item.date2 || '';
-            document.getElementById('kPay2').value = item.pay2 || '';
-            document.getElementById('kPayMode2').value = item.payMode2 || '';
-            
-            document.getElementById('kDate3').value = item.date3 || '';
-            document.getElementById('kPay3').value = item.pay3 || '';
-            document.getElementById('kPayMode3').value = item.payMode3 || '';
-            
+            // If completely empty, show one empty row
+            if(document.getElementById('dynamicPaymentsContainer').children.length === 0) {
+                addPaymentRow();
+            }
+
             document.getElementById('kNote').value = item.note || '';
 
             document.getElementById('workModalTitle').innerText = "Edit Work: " + item.name;
@@ -1291,18 +1344,7 @@
             document.getElementById('kTotal').value = '0';
             document.getElementById('kGrandTotalLabel').innerText = '0.00';
             
-            document.getElementById('kDate1').value = '';
-            document.getElementById('kPay1').value = '';
-            document.getElementById('kPayMode1').value = '';
-            
-            document.getElementById('kDate2').value = '';
-            document.getElementById('kPay2').value = '';
-            document.getElementById('kPayMode2').value = '';
-            
-            document.getElementById('kDate3').value = '';
-            document.getElementById('kPay3').value = '';
-            document.getElementById('kPayMode3').value = '';
-            
+            document.getElementById('dynamicPaymentsContainer').innerHTML = '';
             document.getElementById('kNote').value = '';
         }
 
