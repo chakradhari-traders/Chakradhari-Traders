@@ -123,6 +123,7 @@
         .modal-close { position: absolute; top: 12px; right: 18px; font-size: 1.8rem; color: #94a3b8; cursor: pointer; }
         
         .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .payment-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
         
         .logout-btn { background: #475569; width: auto; padding: 8px 15px; margin-top: 10px; }
         .hidden-file-input { display: none; }
@@ -543,11 +544,9 @@
                 let total = parseFloat(e.total) || 0;
                 let paid = 0;
                 
-                // Naya Unlimited Payments wala logic
                 if(e.paymentsList) {
                     e.paymentsList.forEach(pmt => paid += parseFloat(pmt.amount) || 0);
                 } else {
-                    // Purana logic (backward compatibility)
                     paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
                 }
 
@@ -830,7 +829,6 @@
                 let phoneDisplay = escapeHTML(p.phone) || 'N/A';
                 let waLink = p.phone ? `https://wa.me/91${p.phone.replace(/\D/g, '')}` : '#';
                 
-                // Naya Receivable / Payable Label
                 let outLabel = "Outstanding";
                 if(p.type === 'customer') outLabel = "Receivable";
                 else if(p.type === 'supplier') outLabel = "Payable";
@@ -904,13 +902,15 @@
                 }
             });
 
-            // Naya Receivable / Payable Label
             let outLabel = "Outstanding";
             if(pType === 'customer') outLabel = "Receivable";
             else if(pType === 'supplier') outLabel = "Payable";
 
             document.getElementById('detailOutstandingLabel').innerText = outLabel;
-            document.getElementById('detailOutstandingAmt').innerText = `₹${Math.abs(totalBusiness - totalReceived).toFixed(2)}`;
+            
+            // FIXED: Removed Math.abs so minus sign shows here as well
+            document.getElementById('detailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
+            
             document.getElementById('detailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
             document.getElementById('detailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
             document.getElementById('detailReceivedText').innerText = rcvText;
@@ -922,7 +922,6 @@
                 let rcvAmt = 0;
                 let payDesc = '';
 
-                // Load payments properly
                 if(w.paymentsList) {
                     w.paymentsList.forEach((pmt, i) => {
                         let pa = parseFloat(pmt.amount)||0;
@@ -975,7 +974,9 @@
                         <div class="work-amounts-grid">
                             <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
                             <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
-                            <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${Math.abs(pendAmt).toFixed(2)}</p></div>
+                            
+                            <!-- FIXED: Removed Math.abs so minus sign shows here as well -->
+                            <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${(pendAmt).toFixed(2)}</p></div>
                         </div>
                         <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
                     </div>
@@ -995,7 +996,6 @@
             let dParts = rawDate.split('-');
             let formattedDate = dParts.length === 3 ? `${dParts[2]}-${dParts[1]}-${dParts[0]}` : rawDate;
 
-            // Gather Unique Payment Modes
             let modes = [];
             let rcvAmt = 0;
             if(w.paymentsList) {
@@ -1089,7 +1089,6 @@
             window.print();
         }
 
-        /* ==================== WORK MODAL (MULTIPLE ITEMS & CALCULATION) ==================== */
         function addWorkItemRow(name='', qty='', unit='KG', rate='', amount='') {
             const list = document.getElementById('workItemsList');
             const row = document.createElement('div');
@@ -1141,7 +1140,6 @@
             document.getElementById('kGrandTotalLabel').innerText = finalTotal.toFixed(2);
         }
 
-        /* ==================== UNLIMITED PAYMENTS LOGIC ==================== */
         function addPaymentRow(date='', amt='', mode='') {
             const container = document.getElementById('dynamicPaymentsContainer');
             const row = document.createElement('div');
@@ -1177,7 +1175,7 @@
             }
             document.getElementById('workModalTitle').innerText = "Naya Kaam Jodein: " + document.getElementById('kName').value;
             addWorkItemRow();
-            addPaymentRow(); // 1 empty row
+            addPaymentRow(); 
             document.getElementById('workModal').style.display = 'flex';
         }
 
@@ -1185,7 +1183,7 @@
             resetWorkModal();
             document.getElementById('workModalTitle').innerText = "Naya Grahak / Kaam Jodein";
             addWorkItemRow(); 
-            addPaymentRow(); // 1 empty row
+            addPaymentRow(); 
             document.getElementById('workModal').style.display = 'flex';
         }
 
@@ -1221,7 +1219,6 @@
                 }
             });
 
-            // Naya Payment Loop Array
             let paymentsArr = [];
             document.querySelectorAll('.payment-row-dynamic').forEach(row => {
                 let d = row.querySelector('.payDate').value;
@@ -1250,7 +1247,6 @@
                 total: parseFloat(document.getElementById('kTotal').value) || 0,
                 note: document.getElementById('kNote').value,
                 
-                // Naya Unlimited Payments Field (Purana wala set as null to wipe out)
                 paymentsList: paymentsArr,
                 pay1: null, payMode1: null, date1: null,
                 pay2: null, payMode2: null, date2: null,
@@ -1297,20 +1293,18 @@
             document.getElementById('kInstallation').value = item.installation || '';
             document.getElementById('kOther').value = item.otherCharges || '';
             document.getElementById('kDiscount').value = item.discount || '';
+            
             calcWorkTotal(); 
 
-            // Load payments logic
             document.getElementById('dynamicPaymentsContainer').innerHTML = '';
             if(item.paymentsList && item.paymentsList.length > 0) {
                 item.paymentsList.forEach(pmt => addPaymentRow(pmt.date, pmt.amount, pmt.mode));
             } else {
-                // Backward compatibility load for older entries
                 if(item.pay1 > 0) addPaymentRow(item.date1, item.pay1, item.payMode1);
                 if(item.pay2 > 0) addPaymentRow(item.date2, item.pay2, item.payMode2);
                 if(item.pay3 > 0) addPaymentRow(item.date3, item.pay3, item.payMode3);
             }
             
-            // If completely empty, show one empty row
             if(document.getElementById('dynamicPaymentsContainer').children.length === 0) {
                 addPaymentRow();
             }
