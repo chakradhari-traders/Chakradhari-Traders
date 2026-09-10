@@ -229,7 +229,10 @@
             
             <!-- DASHBOARD & CHART SECTION -->
             <div id="erpDashboard" style="margin-bottom: 25px; padding: 20px; background: var(--card-bg); border-radius: 14px; border: 1px solid #334155; display: none;">
-                <h3 style="color:#fff; margin-bottom: 15px;">📈 Business Dashboard</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="color:#fff; margin: 0;">📈 Business Dashboard</h3>
+                    <select id="dashMonthFilter" onchange="updateDashboardAndChart()" style="width: auto; margin: 0; padding: 6px 10px;"></select>
+                </div>
                 <div class="banner-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 20px;">
                     <div class="banner-stat-card" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #16a34a;">
                         <p style="color: #4ade80;">Total Income</p>
@@ -286,7 +289,7 @@
                     <div class="banner-stats-grid">
                         <div class="banner-stat-card"><h3 id="detailBusinessAmt">₹0</h3><p>Business</p></div>
                         <div class="banner-stat-card"><h3 id="detailReceivedAmt">₹0</h3><p id="detailReceivedText">Received</p></div>
-                        <div class="banner-stat-card"><h3 id="detailWorksCount">0</h3><p>Works</p></div>
+                        <div class="banner-stat-card"><h3 id="detailWorksCount">0</h3><p id="detailWorksText">Works</p></div>
                     </div>
                 </div>
 
@@ -535,27 +538,64 @@
 
         /* ==================== DASHBOARD & GRAPH FUNCTION ==================== */
         function updateDashboardAndChart() {
-            let totalIncome = 0;
-            let totalExpense = 0;
-            let totalCustomerBusiness = 0;
-            let totalCustomerReceived = 0;
+            const monthSel = document.getElementById('dashMonthFilter');
+            let monthsSet = new Set();
+            cloudKhataData.forEach(w => {
+                if(w.entryDate) monthsSet.add(w.entryDate.substring(0,7));
+                if(w.paymentsList) {
+                    w.paymentsList.forEach(pmt => { if(pmt.date) monthsSet.add(pmt.date.substring(0,7)); });
+                }
+            });
+            let sortedMonths = Array.from(monthsSet).sort().reverse();
+
+            if (!monthSel.dataset.loaded || monthSel.options.length !== sortedMonths.length + 1) {
+                let currentVal = monthSel.value || 'all';
+                monthSel.innerHTML = '<option value="all">All Time (Shuru se)</option>';
+                sortedMonths.forEach(m => {
+                    let dateObj = new Date(m + "-01");
+                    let mName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    monthSel.innerHTML += `<option value="${m}">${mName}</option>`;
+                });
+                monthSel.value = currentVal;
+                monthSel.dataset.loaded = "true";
+            }
+
+            let selMonth = monthSel.value;
+
+            let totalIncome = 0; let totalExpense = 0;
+            let totalCustomerBusiness = 0; let totalCustomerReceived = 0;
             
             cloudKhataData.forEach(e => {
-                let total = parseFloat(e.total) || 0;
-                let paid = 0;
+                let paidInMonth = 0;
+                let paidAllTime = 0;
                 
                 if(e.paymentsList) {
-                    e.paymentsList.forEach(pmt => paid += parseFloat(pmt.amount) || 0);
+                    e.paymentsList.forEach(pmt => {
+                        let pa = parseFloat(pmt.amount) || 0;
+                        paidAllTime += pa;
+                        if(selMonth === 'all' || (pmt.date && pmt.date.substring(0,7) === selMonth)) {
+                            paidInMonth += pa;
+                        }
+                    });
                 } else {
-                    paid = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                    let pa = (parseFloat(e.pay1) || 0) + (parseFloat(e.pay2) || 0) + (parseFloat(e.pay3) || 0);
+                    paidAllTime += pa;
+                    if(selMonth === 'all' || (e.entryDate && e.entryDate.substring(0,7) === selMonth)) {
+                        paidInMonth += pa;
+                    }
+                }
+
+                let bizInMonth = 0;
+                if(selMonth === 'all' || (e.entryDate && e.entryDate.substring(0,7) === selMonth)) {
+                    bizInMonth = parseFloat(e.total) || 0;
                 }
 
                 if(e.type === 'supplier') {
-                    totalExpense += paid;
+                    totalExpense += paidInMonth;
                 } else {
-                    totalCustomerBusiness += total;
-                    totalCustomerReceived += paid;
-                    totalIncome += paid;
+                    totalCustomerBusiness += (parseFloat(e.total) || 0); // Always all time for udhari
+                    totalCustomerReceived += paidAllTime; // Always all time for udhari
+                    totalIncome += paidInMonth;
                 }
             });
 
@@ -833,6 +873,8 @@
                 if(p.type === 'customer') outLabel = "Receivable";
                 else if(p.type === 'supplier') outLabel = "Payable";
 
+                let worksLabel = p.type === 'supplier' ? 'Bills' : 'Works';
+
                 container.innerHTML += `
                     <div class="person-card ${escapeHTML(p.type)}">
                         <div>
@@ -845,7 +887,7 @@
                             </div>
                             <div class="stats-box">
                                 <div class="stat-item outstanding"><h4>${outLabel}</h4><p>₹${outstanding}</p></div>
-                                <div class="stat-item"><h4>Works</h4><p>${p.worksCount}</p></div>
+                                <div class="stat-item"><h4>${worksLabel}</h4><p>${p.worksCount}</p></div>
                             </div>
                         </div>
                         <div class="person-actions">
@@ -885,7 +927,7 @@
 
             if(works.length === 0) { closePersonDetail(); return; }
 
-            works.reverse();
+            works.sort((a, b) => new Date(b.entryDate || 0) - new Date(a.entryDate || 0));
 
             let personName = works[0].name;
             let pType = works[0].type;
@@ -905,82 +947,115 @@
             let outLabel = "Outstanding";
             if(pType === 'customer') outLabel = "Receivable";
             else if(pType === 'supplier') outLabel = "Payable";
+            
+            let worksLabel = pType === 'supplier' ? 'Bills' : 'Works';
 
             document.getElementById('detailOutstandingLabel').innerText = outLabel;
-            
-            // FIXED: Removed Math.abs so minus sign shows here as well
             document.getElementById('detailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
-            
             document.getElementById('detailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
             document.getElementById('detailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
             document.getElementById('detailReceivedText').innerText = rcvText;
             document.getElementById('detailWorksCount').innerText = works.length;
-            document.getElementById('detailPersonNameTitle').innerText = `${escapeHTML(personName)} - All Works`;
+            document.getElementById('detailWorksText').innerText = worksLabel;
+            document.getElementById('detailPersonNameTitle').innerText = `${escapeHTML(personName)} - All ${worksLabel}`;
 
-            works.forEach((w, idx) => {
-                let finalAmt = parseFloat(w.total) || 0;
-                let rcvAmt = 0;
-                let payDesc = '';
+            let groupedWorks = {};
+            works.forEach(w => {
+                let mKey = w.entryDate ? w.entryDate.substring(0,7) : 'Unknown';
+                if(!groupedWorks[mKey]) groupedWorks[mKey] = [];
+                groupedWorks[mKey].push(w);
+            });
 
-                if(w.paymentsList) {
-                    w.paymentsList.forEach((pmt, i) => {
-                        let pa = parseFloat(pmt.amount)||0;
-                        rcvAmt += pa;
-                        if(pa > 0) payDesc += `Pay ${i+1}: ₹${pa} (${pmt.date || '-'}) ${pmt.mode ? '['+escapeHTML(pmt.mode)+']' : ''} | `;
-                    });
-                } else {
-                    let pa1 = parseFloat(w.pay1)||0, pa2 = parseFloat(w.pay2)||0, pa3 = parseFloat(w.pay3)||0;
-                    rcvAmt = pa1 + pa2 + pa3;
-                    if(pa1 > 0) payDesc += `1st: ₹${pa1} (${w.date1 || '-'}) ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
-                    if(pa2 > 0) payDesc += `2nd: ₹${pa2} (${w.date2 || '-'}) ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
-                    if(pa3 > 0) payDesc += `3rd: ₹${pa3} (${w.date3 || '-'}) ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''} | `;
+            let sortedMonths = Object.keys(groupedWorks).sort().reverse();
+            const currentMonthStr = new Date().toISOString().substring(0, 7);
+
+            sortedMonths.forEach((mKey, mIndex) => {
+                let monthName = 'Unknown';
+                if(mKey !== 'Unknown') {
+                    let dateObj = new Date(mKey + "-01");
+                    monthName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
                 }
-                payDesc = payDesc.replace(/ \| $/, '');
+                
+                let isOpen = (mKey === currentMonthStr || mIndex === 0) ? 'block' : 'none';
+                let icon = isOpen === 'block' ? '▼' : '▶';
 
-                let pendAmt = finalAmt - rcvAmt;
-                let title = w.workTitle || w.item || `Work #${idx + 1}`;
-                let cat = w.category || w.type || 'Fabrication';
-                let status = w.status || (pendAmt <= 0 ? 'Delivered' : 'Pending');
-                let badgeClass = (status === 'Delivered') ? 'delivered' : '';
-
-                let pendLabel = w.type === 'customer' ? 'Receivable' : 'Payable';
-
-                let itemsOverview = '';
-                if(w.items && w.items.length > 0) {
-                    itemsOverview = w.items.map(it => `• ${escapeHTML(it.name)} - ${it.qty} ${escapeHTML(it.unit)}`).join('<br>');
-                } else if(w.item) {
-                    itemsOverview = escapeHTML(w.item);
-                }
-
-                container.innerHTML += `
-                    <div class="work-card">
-                        <div class="work-item-actions">
-                            <button class="work-btn" onclick="generateInvoice('${w.id}')" style="background:#f59e0b; color:black;">📄 Invoice</button>
-                            <button class="work-btn" onclick="editWorkEntry('${w.id}')">✏️ Edit</button>
-                            <button class="work-btn" onclick="deleteWorkEntry('${w.id}')" style="background:#dc2626;">🗑️</button>
-                        </div>
-                        <div class="work-header">
-                            <div>
-                                <h4>${escapeHTML(title)}</h4>
-                                <span class="category-badge">${escapeHTML(cat)} &nbsp;|&nbsp; <small>Date: ${escapeHTML(w.entryDate || '-')}</small></span>
-                            </div>
-                        </div>
-                        <span class="status-badge ${badgeClass}">${escapeHTML(status)}</span>
-                        
-                        <div style="background:#111; padding:10px; border-radius:6px; margin-bottom:12px; font-size: 0.85rem; color:#cbd5e1; line-height: 1.4;">
-                            ${itemsOverview || 'No items listed'}
-                        </div>
-
-                        <div class="work-amounts-grid">
-                            <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
-                            <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
-                            
-                            <!-- FIXED: Removed Math.abs so minus sign shows here as well -->
-                            <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${(pendAmt).toFixed(2)}</p></div>
-                        </div>
-                        <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
+                let monthHeaderHtml = `
+                    <div onclick="let b=this.nextElementSibling; let i=this.querySelector('span'); if(b.style.display==='none'){b.style.display='block'; i.innerText='▼';}else{b.style.display='none'; i.innerText='▶';}" style="background:#1e293b; color:#fff; padding:12px 18px; border-radius:8px; margin:15px 0 10px 0; font-weight:bold; cursor:pointer; border:1px solid #334155; display:flex; justify-content:space-between;">
+                        <div>📅 ${monthName}</div>
+                        <span>${icon}</span>
                     </div>
                 `;
+
+                let monthBodyHtml = `<div style="display:${isOpen};">`;
+
+                groupedWorks[mKey].forEach((w, idx) => {
+                    let finalAmt = parseFloat(w.total) || 0;
+                    let rcvAmt = 0;
+                    let payDesc = '';
+
+                    if(w.paymentsList) {
+                        w.paymentsList.forEach((pmt, i) => {
+                            let pa = parseFloat(pmt.amount)||0;
+                            rcvAmt += pa;
+                            if(pa > 0) payDesc += `Pay ${i+1}: ₹${pa} (${pmt.date || '-'}) ${pmt.mode ? '['+escapeHTML(pmt.mode)+']' : ''} | `;
+                        });
+                    } else {
+                        let pa1 = parseFloat(w.pay1)||0, pa2 = parseFloat(w.pay2)||0, pa3 = parseFloat(w.pay3)||0;
+                        rcvAmt = pa1 + pa2 + pa3;
+                        if(pa1 > 0) payDesc += `1st: ₹${pa1} (${w.date1 || '-'}) ${w.payMode1 ? '['+escapeHTML(w.payMode1)+']' : ''} | `;
+                        if(pa2 > 0) payDesc += `2nd: ₹${pa2} (${w.date2 || '-'}) ${w.payMode2 ? '['+escapeHTML(w.payMode2)+']' : ''} | `;
+                        if(pa3 > 0) payDesc += `3rd: ₹${pa3} (${w.date3 || '-'}) ${w.payMode3 ? '['+escapeHTML(w.payMode3)+']' : ''} | `;
+                    }
+                    payDesc = payDesc.replace(/ \| $/, '');
+
+                    let pendAmt = finalAmt - rcvAmt;
+                    let title = w.workTitle || w.item || `Work #${idx + 1}`;
+                    let cat = w.category || w.type || 'Fabrication';
+                    let status = w.status || (pendAmt <= 0 ? 'Delivered' : 'Pending');
+                    let badgeClass = (status === 'Delivered') ? 'delivered' : '';
+
+                    let pendLabel = w.type === 'customer' ? 'Receivable' : 'Payable';
+
+                    let itemsOverview = '';
+                    if(w.items && w.items.length > 0) {
+                        itemsOverview = w.items.map(it => {
+                            let u = it.unit ? ` ${escapeHTML(it.unit)}` : '';
+                            return `• ${escapeHTML(it.name)} - ${it.qty}${u}`;
+                        }).join('<br>');
+                    } else if(w.item) {
+                        itemsOverview = escapeHTML(w.item);
+                    }
+
+                    monthBodyHtml += `
+                        <div class="work-card">
+                            <div class="work-item-actions">
+                                <button class="work-btn" onclick="generateInvoice('${w.id}')" style="background:#f59e0b; color:black;">📄 Invoice</button>
+                                <button class="work-btn" onclick="editWorkEntry('${w.id}')">✏️ Edit</button>
+                                <button class="work-btn" onclick="deleteWorkEntry('${w.id}')" style="background:#dc2626;">🗑️</button>
+                            </div>
+                            <div class="work-header">
+                                <div>
+                                    <h4>${escapeHTML(title)}</h4>
+                                    <span class="category-badge">${escapeHTML(cat)} &nbsp;|&nbsp; <small>Date: ${escapeHTML(w.entryDate || '-')}</small></span>
+                                </div>
+                            </div>
+                            <span class="status-badge ${badgeClass}">${escapeHTML(status)}</span>
+                            
+                            <div style="background:#111; padding:10px; border-radius:6px; margin-bottom:12px; font-size: 0.85rem; color:#cbd5e1; line-height: 1.4;">
+                                ${itemsOverview || 'No items listed'}
+                            </div>
+
+                            <div class="work-amounts-grid">
+                                <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
+                                <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
+                                <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${(pendAmt).toFixed(2)}</p></div>
+                            </div>
+                            <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
+                        </div>
+                    `;
+                });
+                monthBodyHtml += `</div>`;
+                container.innerHTML += monthHeaderHtml + monthBodyHtml;
             });
         }
 
@@ -1020,7 +1095,8 @@
             if(w.items && w.items.length > 0) {
                 w.items.forEach(it => {
                     let amt = it.amount || ((it.qty || 0) * (it.rate || 0));
-                    itemsHtml += `<tr><td>${escapeHTML(it.name)}</td><td>${it.qty} ${escapeHTML(it.unit)}</td><td>₹${it.rate}</td><td>₹${amt.toFixed(2)}</td></tr>`;
+                    let u = it.unit ? ` ${escapeHTML(it.unit)}` : '';
+                    itemsHtml += `<tr><td>${escapeHTML(it.name)}</td><td>${it.qty}${u}</td><td>₹${it.rate}</td><td>₹${amt.toFixed(2)}</td></tr>`;
                     subtotal += amt;
                 });
             } else {
@@ -1102,6 +1178,7 @@
                 <div class="item-grid" style="margin-top:6px;">
                     <input type="number" class="itemQty" placeholder="Qty" value="${qty}" oninput="calcWorkTotal()">
                     <select class="itemUnit" style="margin:0;">
+                        <option value="" ${unit===''?'selected':''}>- No Unit -</option>
                         <option value="KG" ${unit==='KG'?'selected':''}>KG</option>
                         <option value="Pcs" ${unit==='Pcs'?'selected':''}>Pcs</option>
                         <option value="Feet" ${unit==='Feet'?'selected':''}>Feet</option>
