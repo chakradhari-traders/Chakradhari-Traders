@@ -240,18 +240,19 @@
             <div class="erp-grid" id="inventoryContainer"></div>
         </div>
 
-        <!-- STAFF MANAGEMENT SECTION (NEW) -->
+        <!-- STAFF MANAGEMENT SECTION -->
         <div id="staffSection" style="display: none;">
             <div class="erp-top-bar">
                 <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">👷 Staff Management</h3>
-                <button onclick="openStaffModalForNew()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
+                <!-- FIX: Changed from openStaffModalForNew() to openStaffProfileModal() -->
+                <button onclick="openStaffProfileModal()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
                     ➕ Naya Staff
                 </button>
             </div>
             <div class="erp-grid" id="staffMasterContainer"></div>
         </div>
 
-        <!-- STAFF DETAIL VIEW (NEW) -->
+        <!-- STAFF DETAIL VIEW -->
         <div id="staffDetailView">
             <button class="back-btn" onclick="closeStaffDetail()" style="width: auto; background: #334155; margin-bottom: 20px; padding: 10px 18px;">
                 ⬅️ Back to Staff List
@@ -1076,9 +1077,9 @@
                     }
                 }
 
-                if(e.type === 'supplier') {
+                if(e.type === 'supplier' || e.type === 'staff') {
                     totalExpense += paidInMonth;
-                } else if(e.type === 'customer') {
+                } else {
                     totalCustomerBusiness += (parseFloat(e.total) || 0);
                     totalCustomerReceived += paidAllTime;
                     totalIncome += paidInMonth;
