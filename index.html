@@ -77,8 +77,8 @@
         .action-icon-btn { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: 0.2s; }
         .action-icon-btn:hover { background: #1d4ed8; }
         
-        /* ==================== CUSTOMER DETAIL VIEW ==================== */
-        #personDetailView { display: none; }
+        /* ==================== DETAIL VIEWS ==================== */
+        #personDetailView, #staffDetailView { display: none; }
         .detail-banner { background: var(--blue); border-radius: 20px; padding: 25px 15px; text-align: center; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(37,99,235,0.3); }
         .detail-banner h2 { font-size: 2.2rem; font-weight: 800; color: #fff; margin-bottom: 4px; word-break: break-word;}
         .detail-banner .subtitle { font-size: 0.95rem; color: #e2e8f0; margin-bottom: 20px; font-weight: 600; }
@@ -131,11 +131,6 @@
         .hidden-file-input { display: none; }
         #loader { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); padding: 20px 30px; border-radius: 12px; color: #fff; z-index: 9999; font-weight: bold; border: 1px solid #475569; text-align: center; }
 
-        /* INVENTORY TABLE CSS */
-        .inv-table-ui { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .inv-table-ui th { background: #334155; color: #fff; padding: 12px; text-align: left; font-size: 0.9rem; }
-        .inv-table-ui td { background: var(--card-inner); padding: 12px; border-bottom: 1px solid #334155; color: #cbd5e1; font-size: 0.95rem; }
-        
         /* ==================== PRINTABLE INVOICE CSS ==================== */
         #invoicePrintArea { display: none; background: #fff; color: #000; padding: 30px; font-family: 'Segoe UI', Arial, sans-serif; }
         
@@ -210,7 +205,8 @@
         <div class="nav-tabs">
             <div id="tabShowroom" class="tab-btn active" onclick="switchTab('showroom')">🖼️ Design Showroom</div>
             <div id="tabKhata" class="tab-btn" onclick="switchTab('khata')" style="display: none;">📊 ERP Ledger Book</div>
-            <div id="tabStaff" class="tab-btn" onclick="switchTab('staff')" style="display: none;">🧑‍🔧 Staff Manage</div>
+            <!-- NEW TAB FOR STAFF MANAGEMENT -->
+            <div id="tabStaff" class="tab-btn" onclick="switchTab('staff')" style="display: none;">👷 Staff Manage</div>
             <div id="tabInventory" class="tab-btn" onclick="switchTab('inventory')" style="display: none;">📦 Stock (Inventory)</div>
             <div id="tabLogs" class="tab-btn" onclick="switchTab('logs')" style="display: none;">📱 Login Logs</div>
         </div>
@@ -233,9 +229,52 @@
             <div class="image-grid" id="imageGrid"></div>
         </div>
 
+        <!-- INVENTORY SECTION -->
+        <div id="inventorySection" style="display: none;">
+            <div class="erp-top-bar">
+                <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">📦 Inventory & Stock Log</h3>
+                <button onclick="openInventoryModal()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
+                    ➕ Naya Stock Update
+                </button>
+            </div>
+            <div class="erp-grid" id="inventoryContainer"></div>
+        </div>
+
+        <!-- STAFF MANAGEMENT SECTION (NEW) -->
+        <div id="staffSection" style="display: none;">
+            <div class="erp-top-bar">
+                <h3 style="flex-grow: 1; color: #fff; min-width: 250px;">👷 Staff Management</h3>
+                <button onclick="openStaffModalForNew()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
+                    ➕ Naya Staff
+                </button>
+            </div>
+            <div class="erp-grid" id="staffMasterContainer"></div>
+        </div>
+
+        <!-- STAFF DETAIL VIEW (NEW) -->
+        <div id="staffDetailView">
+            <button class="back-btn" onclick="closeStaffDetail()" style="width: auto; background: #334155; margin-bottom: 20px; padding: 10px 18px;">
+                ⬅️ Back to Staff List
+            </button>
+            
+            <div class="detail-banner" style="background: var(--purple);">
+                <h2 id="staffDetailName">Staff Name</h2>
+                <div class="subtitle" id="staffDetailPost">Post</div>
+                <div class="banner-stats-grid">
+                    <div class="banner-stat-card"><h3 id="staffTotalPresent">0</h3><p>Days Present</p></div>
+                    <div class="banner-stat-card"><h3 id="staffTotalPaid">₹0</h3><p>Total Paid</p></div>
+                </div>
+            </div>
+
+            <div class="works-section-title">
+                <h3>Attendance & Payment Log</h3>
+            </div>
+            <div id="staffLogsContainer"></div>
+            <button class="floating-add-btn" onclick="openStaffLogModal()" style="background: var(--purple);" title="Add Attendance/Payment">+</button>
+        </div>
+
         <!-- ERP KHATA BOOK SECTION -->
         <div id="khataSection" style="display: none;">
-            
             <!-- DASHBOARD & CHART SECTION -->
             <div id="erpDashboard" style="margin-bottom: 25px; padding: 20px; background: var(--card-bg); border-radius: 14px; border: 1px solid #334155; display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -311,45 +350,69 @@
             </div>
         </div>
 
-        <!-- STAFF MANAGEMENT SECTION -->
-        <div id="staffSection" style="display: none;">
-            <div class="erp-top-bar">
-                <h3 style="flex-grow: 1; color: #fff;">🧑‍🔧 Staff Management</h3>
-                <button onclick="openStaffModal()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
-                    ➕ Naya Staff
-                </button>
-            </div>
-            <div class="erp-grid" id="staffCardsContainer"></div>
-        </div>
-
-        <!-- INVENTORY SECTION -->
-        <div id="inventorySection" style="display: none;">
-            <div class="erp-top-bar">
-                <h3 style="flex-grow: 1; color: #fff;">📦 Stock / Inventory</h3>
-                <button onclick="openInventoryModal()" style="width: auto; background: #16a34a; margin: 0; padding: 10px 18px;">
-                    ➕ Naya Item Add Karein
-                </button>
-            </div>
-            <div style="background: var(--card-bg); border-radius: 12px; border: 1px solid #334155; overflow-x: auto; padding: 10px;">
-                <table class="inv-table-ui">
-                    <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>In Stock (Bacha hua maal)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
         <!-- CUSTOMER LOGS -->
         <div id="logsSection" style="display: none;">
             <div class="controls">
                 <h3>📱 Website Pe Aaye Grahakon ke Numbers</h3>
                 <div id="logDisplay"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR ADDING / EDITING INVENTORY ENTRY -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeInventoryModal()">&times;</span>
+            <h3 style="color: var(--blue); margin-bottom: 15px;">📦 Stock Snapshot / Update</h3>
+            <input type="hidden" id="invEditId" value="">
+            
+            <label style="font-size: 0.85rem; color: #94a3b8;">Kis Tarikh ka Stock hai?</label>
+            <input type="date" id="invDate">
+
+            <label style="font-size: 0.95rem; color: #fff; margin-top: 15px; display: block; border-bottom: 1px solid #334155; padding-bottom: 5px;">Stock Items:</label>
+            <div class="items-container" id="invItemsList"></div>
+            <button type="button" onclick="addInvItemRow()" style="background: #3b82f6; padding: 8px; font-size: 0.85rem; margin-bottom: 15px;">+ Add Stock Item</button>
+
+            <textarea id="invNote" placeholder="Note (e.g., Aaj 5 angle use hue)"></textarea>
+            <button onclick="saveInventoryEntry()" style="background: var(--green); padding: 14px; font-size: 1.1rem;">✅ Stock Save Karo</button>
+        </div>
+    </div>
+
+    <!-- MODAL FOR STAFF PROFILE -->
+    <div id="staffProfileModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeStaffProfileModal()">&times;</span>
+            <h3 style="color: var(--purple); margin-bottom: 15px;">👷 Staff Detail Bharein</h3>
+            <input type="hidden" id="staffEditKey" value="">
+            <input type="text" id="sName" placeholder="Staff Name (e.g., Kanaiya Kumar)">
+            <input type="number" id="sPhone" placeholder="Mobile Number">
+            <input type="text" id="sPost" placeholder="Post / Role (e.g., Welding Mistry)">
+            <button onclick="saveStaffProfile()" style="background: var(--green); padding: 14px; font-size: 1.1rem; margin-top: 15px;">✅ Staff Save Karo</button>
+        </div>
+    </div>
+
+    <!-- MODAL FOR STAFF ATTENDANCE / PAYMENT -->
+    <div id="staffLogModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeStaffLogModal()">&times;</span>
+            <h3 style="color: var(--purple); margin-bottom: 15px;">📝 Attendance & Payment</h3>
+            <input type="hidden" id="staffLogEditId" value="">
+            
+            <label style="font-size: 0.85rem; color: #94a3b8;">Tarikh (Date):</label>
+            <input type="date" id="sLogDate">
+
+            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; display: block;">Haaziri (Attendance):</label>
+            <select id="sLogStatus">
+                <option value="Present">🟢 Present (Aaya tha)</option>
+                <option value="Absent">🔴 Absent (Nahi aaya)</option>
+                <option value="Half Day">🟡 Half Day</option>
+            </select>
+
+            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; display: block;">Payment Given (Paisa Diya):</label>
+            <input type="number" id="sLogAmount" placeholder="Amount Paid (₹)">
+            
+            <textarea id="sLogNote" placeholder="Note (e.g., Advance diya)"></textarea>
+            <button onclick="saveStaffLog()" style="background: var(--green); padding: 14px; font-size: 1.1rem; margin-top: 15px;">✅ Save Entry</button>
         </div>
     </div>
 
@@ -366,7 +429,7 @@
                 <option value="supplier">Supplier (Samaan Wala)</option>
             </select>
 
-            <input type="text" id="kName" placeholder="Grahak / Supplier ka Naam (e.g., Rohit Kumar)">
+            <input type="text" id="kName" placeholder="Grahak / Supplier ka Naam">
             <input type="number" id="kPhone" placeholder="Mobile Number">
             <input type="text" id="kAddress" placeholder="Address / Pata">
 
@@ -420,51 +483,6 @@
         </div>
     </div>
 
-    <!-- MODAL FOR STAFF -->
-    <div id="staffModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeStaffModal()">&times;</span>
-            <h3 style="color: var(--blue); margin-bottom: 15px;">Staff Detail Bharein</h3>
-            <input type="hidden" id="staffId" value="">
-            <input type="text" id="staffName" placeholder="Staff ka Naam (e.g., Krishna)">
-            <input type="number" id="staffPhone" placeholder="Mobile Number">
-            <input type="text" id="staffRole" placeholder="Role (e.g., Welder, Helper, Mistri)">
-            
-            <label style="font-size: 0.85rem; color: #94a3b8; margin-top: 10px; display: block;">Salary / Payment Hisaab:</label>
-            <div class="calc-row">
-                <input type="number" id="staffTotalSalary" placeholder="Total Salary Tay (₹)">
-                <input type="number" id="staffTotalPaid" placeholder="Ab tak kitna Paid diya? (₹)">
-            </div>
-            
-            <button onclick="saveStaffEntry()" style="background: var(--green); padding: 14px; font-size: 1.1rem;">✅ Staff Save Karo</button>
-        </div>
-    </div>
-
-    <!-- MODAL FOR INVENTORY -->
-    <div id="inventoryModal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeInventoryModal()">&times;</span>
-            <h3 style="color: var(--blue); margin-bottom: 15px;">Stock / Item Detail</h3>
-            <input type="hidden" id="invId" value="">
-            <input type="text" id="invName" placeholder="Samaan ka Naam (e.g., 1.25 inch Gol Pipe)">
-            
-            <div class="calc-row">
-                <input type="number" id="invQty" placeholder="Kitna Stock hai? (Quantity)">
-                <select id="invUnit">
-                    <option value="">- No Unit -</option>
-                    <option value="KG">KG</option>
-                    <option value="Pcs">Pcs</option>
-                    <option value="Feet">Feet</option>
-                    <option value="Sq.Feet">Sq.Feet</option>
-                    <option value="Ltr">Ltr</option>
-                    <option value="Set">Set</option>
-                </select>
-            </div>
-            
-            <button onclick="saveInventoryEntry()" style="background: var(--green); padding: 14px; font-size: 1.1rem;">✅ Stock Update Karo</button>
-        </div>
-    </div>
-
     <!-- Image Zoom Modal -->
     <div id="myModal" class="modal">
         <span class="modal-close" onclick="closeModal()">&times;</span>
@@ -493,11 +511,11 @@
         let cloudImagesData = {};
         let cloudCategories = [];
         let cloudKhataData = [];
-        let cloudLogsData = [];
-        let cloudStaffData = [];
         let cloudInventoryData = [];
-        
+        let cloudStaffLogsData = [];
+        let cloudLogsData = [];
         let currentActivePersonKey = null;
+        let currentActiveStaffKey = null;
         let currentReplacingKey = '';
         let currentReplacingIndex = -1;
         let currentAddingKey = '';
@@ -531,24 +549,25 @@
             }
         });
 
-        db.ref('siteLogs').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            cloudLogsData = Object.keys(data).map(key => data[key]);
-            if(loggedInRole === 'owner') loadLogsUI();
-        });
-
-        // NAYA STAFF DATABASE HOOK
-        db.ref('shopStaff').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            cloudStaffData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-            if(loggedInRole === 'owner') loadStaffUI();
-        });
-
-        // NAYA INVENTORY DATABASE HOOK
         db.ref('shopInventory').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             cloudInventoryData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
             if(loggedInRole === 'owner') loadInventoryUI();
+        });
+
+        db.ref('shopStaffLogs').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            cloudStaffLogsData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+            if(loggedInRole === 'owner') {
+                loadStaffGridUI();
+                if(currentActiveStaffKey) renderStaffDetailView(currentActiveStaffKey);
+            }
+        });
+
+        db.ref('siteLogs').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            cloudLogsData = Object.keys(data).map(key => data[key]);
+            if(loggedInRole === 'owner') loadLogsUI();
         });
 
         window.onload = function() {
@@ -575,9 +594,9 @@
             loadImagesUI();
             updateDashboardAndChart(); 
             loadLedgerGridUI();
-            loadLogsUI();
-            loadStaffUI();
             loadInventoryUI();
+            loadStaffGridUI();
+            loadLogsUI();
         }
 
         function toggleRoleFields() {
@@ -647,7 +666,365 @@
             document.getElementById('tabStaff').classList.toggle('active', tab === 'staff');
             document.getElementById('tabInventory').classList.toggle('active', tab === 'inventory');
             document.getElementById('tabLogs').classList.toggle('active', tab === 'logs');
+            
             if(tab === 'khata') closePersonDetail();
+            if(tab === 'staff') closeStaffDetail();
+        }
+
+        /* ==================== STAFF MANAGEMENT LOGIC (NEW) ==================== */
+        function loadStaffGridUI() {
+            const container = document.getElementById('staffMasterContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const groupedStaff = {};
+
+            cloudStaffLogsData.forEach(e => {
+                if(e.isProfile) {
+                    const cleanName = (e.name || 'Unknown').trim().toLowerCase();
+                    const cleanPhone = (e.phone || '').trim().replace(/\D/g, '');
+                    const key = cleanName + '_' + cleanPhone;
+                    if(!groupedStaff[key]) {
+                        groupedStaff[key] = { key: key, name: e.name, phone: e.phone, post: e.post, profileId: e.id, totalPaid: 0, totalPresent: 0 };
+                    } else {
+                        groupedStaff[key].name = e.name; groupedStaff[key].phone = e.phone; groupedStaff[key].post = e.post; groupedStaff[key].profileId = e.id;
+                    }
+                }
+            });
+
+            cloudStaffLogsData.forEach(e => {
+                if(!e.isProfile) {
+                    const key = e.staffKey;
+                    if(groupedStaff[key]) {
+                        groupedStaff[key].totalPaid += parseFloat(e.amount) || 0;
+                        if(e.status === 'Present') groupedStaff[key].totalPresent += 1;
+                        if(e.status === 'Half Day') groupedStaff[key].totalPresent += 0.5;
+                    }
+                }
+            });
+
+            let staffList = Object.values(groupedStaff);
+            if(staffList.length === 0) {
+                container.innerHTML = `<p style="color:#94a3b8; padding: 20px 0;">Koi Staff add nahi kiya gaya.</p>`; return;
+            }
+
+            staffList.forEach(s => {
+                let initial = s.name.charAt(0).toUpperCase();
+                let phoneDisplay = escapeHTML(s.phone) || 'N/A';
+                
+                container.innerHTML += `
+                    <div class="person-card" style="border-left: 4px solid var(--purple);">
+                        <div>
+                            <div class="person-card-top">
+                                <div class="avatar-circle" style="background: var(--purple);">${escapeHTML(initial)}</div>
+                                <div class="person-name">
+                                    <h3>${escapeHTML(s.name)}</h3>
+                                    <p>📞 ${phoneDisplay} &nbsp;|&nbsp; <span style="text-transform:uppercase; font-size:0.75rem; color:#cbd5e1;">${escapeHTML(s.post || 'STAFF')}</span></p>
+                                </div>
+                            </div>
+                            <div class="stats-box">
+                                <div class="stat-item"><h4>Total Paid</h4><p style="color:#4ade80;">₹${s.totalPaid}</p></div>
+                                <div class="stat-item"><h4>Days Present</h4><p>${s.totalPresent}</p></div>
+                            </div>
+                        </div>
+                        <div class="person-actions" style="grid-template-columns: 1fr 1fr;">
+                            <button onclick="openStaffProfileModal('${s.profileId}')" class="action-icon-btn" style="background:#f59e0b; color:black;">✏️ Edit Staff</button>
+                            <button onclick="openStaffDetail('${s.key}')" class="action-icon-btn" style="background:var(--purple);">👁️ Attendance & Pay</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function openStaffProfileModal(editId = null) {
+            document.getElementById('staffEditKey').value = '';
+            document.getElementById('sName').value = '';
+            document.getElementById('sPhone').value = '';
+            document.getElementById('sPost').value = '';
+
+            if(editId) {
+                const s = cloudStaffLogsData.find(e => e.id === editId);
+                if(s) {
+                    document.getElementById('staffEditKey').value = s.id;
+                    document.getElementById('sName').value = s.name || '';
+                    document.getElementById('sPhone').value = s.phone || '';
+                    document.getElementById('sPost').value = s.post || '';
+                }
+            }
+            document.getElementById('staffProfileModal').style.display = 'flex';
+        }
+
+        function closeStaffProfileModal() {
+            document.getElementById('staffProfileModal').style.display = 'none';
+        }
+
+        function saveStaffProfile() {
+            const name = document.getElementById('sName').value.trim();
+            if(!name) { alert("Staff ka naam likhna zaruri hai!"); return; }
+
+            const editId = document.getElementById('staffEditKey').value;
+            const entry = {
+                isProfile: true,
+                name: name,
+                phone: document.getElementById('sPhone').value,
+                post: document.getElementById('sPost').value
+            };
+
+            if(editId) {
+                db.ref('shopStaffLogs/' + editId).update(entry).then(() => { closeStaffProfileModal(); });
+            } else {
+                db.ref('shopStaffLogs').push(entry).then(() => { closeStaffProfileModal(); });
+            }
+        }
+
+        function openStaffDetail(staffKey) {
+            currentActiveStaffKey = staffKey;
+            document.getElementById('staffSection').style.display = 'none';
+            document.getElementById('staffDetailView').style.display = 'block';
+            renderStaffDetailView(staffKey);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeStaffDetail() {
+            currentActiveStaffKey = null;
+            document.getElementById('staffDetailView').style.display = 'none';
+            document.getElementById('staffSection').style.display = 'block';
+            loadStaffGridUI();
+        }
+
+        function renderStaffDetailView(staffKey) {
+            const container = document.getElementById('staffLogsContainer');
+            container.innerHTML = '';
+
+            let profile = cloudStaffLogsData.find(e => e.isProfile && (e.name.trim().toLowerCase() + '_' + (e.phone || '').trim().replace(/\D/g, '')) === staffKey);
+            if(!profile) { closeStaffDetail(); return; }
+
+            document.getElementById('staffDetailName').innerText = profile.name;
+            document.getElementById('staffDetailPost').innerText = profile.post || 'Staff Member';
+
+            let logs = cloudStaffLogsData.filter(e => !e.isProfile && e.staffKey === staffKey);
+            logs.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+            let totalPaid = 0; let totalPresent = 0;
+            logs.forEach(l => {
+                totalPaid += parseFloat(l.amount) || 0;
+                if(l.status === 'Present') totalPresent += 1;
+                if(l.status === 'Half Day') totalPresent += 0.5;
+            });
+
+            document.getElementById('staffTotalPaid').innerText = `₹${totalPaid.toFixed(2)}`;
+            document.getElementById('staffTotalPresent').innerText = totalPresent;
+
+            let groupedLogs = {};
+            logs.forEach(l => {
+                let mKey = l.date ? l.date.substring(0,7) : 'Unknown';
+                if(!groupedLogs[mKey]) groupedLogs[mKey] = [];
+                groupedLogs[mKey].push(l);
+            });
+
+            let sortedMonths = Object.keys(groupedLogs).sort().reverse();
+            const currentMonthStr = new Date().toISOString().substring(0, 7);
+
+            sortedMonths.forEach((mKey, mIndex) => {
+                let monthName = 'Unknown';
+                if(mKey !== 'Unknown') {
+                    let dateObj = new Date(mKey + "-01");
+                    monthName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+                }
+                
+                let isOpen = (mKey === currentMonthStr || mIndex === 0) ? 'block' : 'none';
+                let icon = isOpen === 'block' ? '▼' : '▶';
+
+                let monthHeaderHtml = `
+                    <div onclick="let b=this.nextElementSibling; let i=this.querySelector('span'); if(b.style.display==='none'){b.style.display='block'; i.innerText='▼';}else{b.style.display='none'; i.innerText='▶';}" style="background:#1e293b; color:#fff; padding:12px 18px; border-radius:8px; margin:15px 0 10px 0; font-weight:bold; cursor:pointer; border:1px solid #334155; display:flex; justify-content:space-between;">
+                        <div>📅 ${monthName}</div>
+                        <span>${icon}</span>
+                    </div>
+                `;
+
+                let monthBodyHtml = `<div style="display:${isOpen};">`;
+
+                groupedLogs[mKey].forEach(l => {
+                    let d = new Date(l.date);
+                    let dateStr = isNaN(d) ? l.date : d.toLocaleString('default', { day: '2-digit', month: 'short', year: 'numeric' });
+                    
+                    let badgeClass = l.status === 'Present' ? 'delivered' : (l.status === 'Absent' ? 'pending' : '');
+                    let amtHtml = (parseFloat(l.amount) > 0) ? `<span style="color:#4ade80; font-weight:bold;">Paid: ₹${l.amount}</span>` : '';
+                    
+                    monthBodyHtml += `
+                        <div class="work-card" style="padding: 12px 18px;">
+                            <div class="work-item-actions">
+                                <button class="work-btn" onclick="openStaffLogModal('${l.id}')">✏️ Edit</button>
+                                <button class="work-btn" onclick="deleteStaffLog('${l.id}')" style="background:#dc2626;">🗑️</button>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:6px; padding-right:120px;">
+                                <h4 style="color:#fff; font-size:1.1rem;">${dateStr}</h4>
+                                <div><span class="status-badge ${badgeClass}" style="margin:0;">${escapeHTML(l.status)}</span> &nbsp; ${amtHtml}</div>
+                                <p style="font-size:0.85rem; color:#94a3b8; margin-top:4px;">${escapeHTML(l.note)}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                monthBodyHtml += `</div>`;
+                container.innerHTML += monthHeaderHtml + monthBodyHtml;
+            });
+        }
+
+        function openStaffLogModal(editId = null) {
+            document.getElementById('staffLogEditId').value = '';
+            document.getElementById('sLogDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('sLogStatus').value = 'Present';
+            document.getElementById('sLogAmount').value = '';
+            document.getElementById('sLogNote').value = '';
+
+            if(editId) {
+                const l = cloudStaffLogsData.find(e => e.id === editId);
+                if(l) {
+                    document.getElementById('staffLogEditId').value = l.id;
+                    document.getElementById('sLogDate').value = l.date || '';
+                    document.getElementById('sLogStatus').value = l.status || 'Present';
+                    document.getElementById('sLogAmount').value = l.amount || '';
+                    document.getElementById('sLogNote').value = l.note || '';
+                }
+            }
+            document.getElementById('staffLogModal').style.display = 'flex';
+        }
+
+        function closeStaffLogModal() {
+            document.getElementById('staffLogModal').style.display = 'none';
+        }
+
+        function saveStaffLog() {
+            if(!currentActiveStaffKey) return;
+            const date = document.getElementById('sLogDate').value;
+            if(!date) { alert("Tarikh (Date) select karein!"); return; }
+
+            const editId = document.getElementById('staffLogEditId').value;
+            const entry = {
+                isProfile: false,
+                staffKey: currentActiveStaffKey,
+                date: date,
+                status: document.getElementById('sLogStatus').value,
+                amount: parseFloat(document.getElementById('sLogAmount').value) || 0,
+                note: document.getElementById('sLogNote').value
+            };
+
+            if(editId) {
+                db.ref('shopStaffLogs/' + editId).update(entry).then(() => { closeStaffLogModal(); });
+            } else {
+                db.ref('shopStaffLogs').push(entry).then(() => { closeStaffLogModal(); });
+            }
+        }
+
+        function deleteStaffLog(id) {
+            if(confirm("Kya aap sach me is din ki entry delete karna chahte hain?")) {
+                db.ref('shopStaffLogs/' + id).remove();
+            }
+        }
+
+
+        /* ==================== INVENTORY LOGIC (PREVIOUSLY ADDED) ==================== */
+        function loadInventoryUI() {
+            const container = document.getElementById('inventoryContainer');
+            container.innerHTML = '';
+            
+            let list = [...cloudInventoryData].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+            
+            if(list.length === 0) {
+                container.innerHTML = `<p style="color:#94a3b8; padding: 20px 0;">Koi Stock entry nahi mili.</p>`; return;
+            }
+
+            list.forEach(inv => {
+                let itemsHtml = inv.items ? inv.items.map(it => {
+                    let u = it.unit ? ` ${escapeHTML(it.unit)}` : '';
+                    return `• ${escapeHTML(it.name)}: <b>${it.qty}${u}</b>`;
+                }).join('<br>') : 'No items';
+                
+                let d = new Date(inv.date);
+                let dateStr = isNaN(d) ? inv.date : d.toLocaleString('default', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                container.innerHTML += `
+                    <div class="work-card">
+                        <div class="work-item-actions">
+                            <button class="work-btn" onclick="deleteInventoryEntry('${inv.id}')" style="background:#dc2626;">🗑️</button>
+                        </div>
+                        <div class="work-header" style="padding-right: 50px;">
+                            <h4 style="font-size:1.3rem;">📅 ${escapeHTML(dateStr)}</h4>
+                            <span class="category-badge">${escapeHTML(inv.note || 'Stock Update')}</span>
+                        </div>
+                        <div style="background:#111; padding:12px; border-radius:8px; font-size: 0.95rem; color:#cbd5e1; line-height: 1.6; border: 1px dashed #475569;">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openInventoryModal() {
+            document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('invItemsList').innerHTML = '';
+            document.getElementById('invNote').value = '';
+            addInvItemRow();
+            document.getElementById('inventoryModal').style.display = 'flex';
+        }
+
+        function closeInventoryModal() {
+            document.getElementById('inventoryModal').style.display = 'none';
+        }
+        
+        function addInvItemRow(name='', qty='', unit='Length') {
+            const list = document.getElementById('invItemsList');
+            const row = document.createElement('div');
+            row.className = 'item-row inv-item-row';
+            row.style = 'display: grid; grid-template-columns: 2fr 1fr 1.2fr auto; gap: 8px; align-items:center; margin-bottom:8px; background:var(--card-inner); padding:10px; border-radius:8px; border:1px solid #334155;';
+            row.innerHTML = `
+                <input type="text" class="invItemName" placeholder="Item (Iron Square Rod)" value="${escapeHTML(name)}" style="margin:0;">
+                <input type="number" class="invItemQty" placeholder="Qty" value="${qty}" style="margin:0;">
+                <select class="invItemUnit" style="margin:0;">
+                    <option value="" ${unit===''?'selected':''}>- No Unit -</option>
+                    <option value="Length" ${unit==='Length'?'selected':''}>Length</option>
+                    <option value="Pcs" ${unit==='Pcs'?'selected':''}>Pcs</option>
+                    <option value="KG" ${unit==='KG'?'selected':''}>KG</option>
+                    <option value="Feet" ${unit==='Feet'?'selected':''}>Feet</option>
+                </select>
+                <button type="button" onclick="this.parentElement.remove();" style="background:var(--red); border:none; border-radius:6px; color:white; font-size:1rem; cursor:pointer; padding: 10px;">🗑️</button>
+            `;
+            list.appendChild(row);
+        }
+
+        function saveInventoryEntry() {
+            const today = document.getElementById('invDate').value;
+            if(!today) { alert("Tarikh (Date) select karein!"); return; }
+
+            let invItems = [];
+            document.querySelectorAll('.inv-item-row').forEach(row => {
+                let n = row.querySelector('.invItemName').value.trim();
+                if(n) {
+                    invItems.push({
+                        name: n,
+                        qty: parseFloat(row.querySelector('.invItemQty').value) || 0,
+                        unit: row.querySelector('.invItemUnit').value || ''
+                    });
+                }
+            });
+
+            if(invItems.length === 0) { alert("Kam se kam ek stock item zarur daalein!"); return; }
+
+            const entry = {
+                date: today,
+                note: document.getElementById('invNote').value,
+                items: invItems
+            };
+
+            db.ref('shopInventory').push(entry).then(() => {
+                alert("Stock Entry Save Ho Gayi! ✅");
+                closeInventoryModal();
+            });
+        }
+        
+        function deleteInventoryEntry(id) {
+            if(confirm("Kya aap sach me is din ka stock history delete karna chahte hain?")) {
+                db.ref('shopInventory/' + id).remove();
+            }
         }
 
         /* ==================== DASHBOARD & GRAPH FUNCTION ==================== */
@@ -699,25 +1076,21 @@
                     }
                 }
 
-                let bizInMonth = 0;
-                if(selMonth === 'all' || (e.entryDate && e.entryDate.substring(0,7) === selMonth)) {
-                    bizInMonth = parseFloat(e.total) || 0;
-                }
-
                 if(e.type === 'supplier') {
                     totalExpense += paidInMonth;
-                } else {
+                } else if(e.type === 'customer') {
                     totalCustomerBusiness += (parseFloat(e.total) || 0);
-                    totalCustomerReceived += paidAllTime; 
+                    totalCustomerReceived += paidAllTime;
                     totalIncome += paidInMonth;
                 }
             });
-
-            // Also include Staff payments in expenses
-            cloudStaffData.forEach(s => {
-                // To be precise with month we need dates, but for now we'll add all staff pay to all-time expense
-                if(selMonth === 'all') {
-                    totalExpense += (parseFloat(s.totalPaid) || 0);
+            
+            // Add Staff Payments to Expenses
+            cloudStaffLogsData.forEach(l => {
+                if(!l.isProfile) {
+                    if(selMonth === 'all' || (l.date && l.date.substring(0,7) === selMonth)) {
+                        totalExpense += parseFloat(l.amount) || 0;
+                    }
                 }
             });
 
@@ -1073,7 +1446,7 @@
             let worksLabel = pType === 'supplier' ? 'Bills' : 'Works';
 
             document.getElementById('detailOutstandingLabel').innerText = outLabel;
-            document.getElementById('detailOutstandingAmt').innerText = `₹${Math.abs(totalBusiness - totalReceived).toFixed(2)}`;
+            document.getElementById('detailOutstandingAmt').innerText = `₹${(totalBusiness - totalReceived).toFixed(2)}`;
             document.getElementById('detailBusinessAmt').innerText = `₹${totalBusiness.toFixed(2)}`;
             document.getElementById('detailReceivedAmt').innerText = `₹${totalReceived.toFixed(2)}`;
             document.getElementById('detailReceivedText').innerText = rcvText;
@@ -1136,7 +1509,7 @@
                     let status = w.status || (pendAmt <= 0 ? 'Delivered' : 'Pending');
                     let badgeClass = (status === 'Delivered') ? 'delivered' : '';
 
-                    let pendLabel = w.type === 'customer' ? 'Receivable' : 'Payable';
+                    let pendLabel = pType === 'customer' ? 'Receivable' : 'Payable';
 
                     let itemsOverview = '';
                     if(w.items && w.items.length > 0) {
@@ -1170,7 +1543,7 @@
                             <div class="work-amounts-grid">
                                 <div class="amt-box"><h5>Final</h5><p>₹${finalAmt.toFixed(2)}</p></div>
                                 <div class="amt-box received"><h5>${rcvText}</h5><p>₹${rcvAmt.toFixed(2)}</p></div>
-                                <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${Math.abs(pendAmt).toFixed(2)}</p></div>
+                                <div class="amt-box pending"><h5>${pendLabel}</h5><p>₹${(pendAmt).toFixed(2)}</p></div>
                             </div>
                             <p style="font-size:0.82rem; color:#cbd5e1; margin-top:10px;">${payDesc}</p>
                         </div>
@@ -1380,7 +1753,7 @@
 
         function openWorkModalForNewPerson() {
             resetWorkModal();
-            document.getElementById('workModalTitle').innerText = "Naya Grahak / Kaam Jodein";
+            document.getElementById('workModalTitle').innerText = "Naya Khata Jodein";
             addWorkItemRow(); 
             addPaymentRow(); 
             document.getElementById('workModal').style.display = 'flex';
@@ -1394,7 +1767,11 @@
         function toggleKhataFields() {
             const type = document.getElementById('khataType').value;
             document.getElementById('kAddress').style.display = 'block';
-            document.getElementById('paymentLabelText').innerText = (type === 'supplier') ? 'Payment Given (Paisa Diya):' : 'Payment Received (Paisa mila):';
+            if(type === 'supplier') {
+                document.getElementById('paymentLabelText').innerText = 'Payment Given (Paisa Diya):';
+            } else {
+                document.getElementById('paymentLabelText').innerText = 'Payment Received (Paisa mila):';
+            }
         }
 
         function saveWorkEntry() {
@@ -1411,7 +1788,7 @@
                     workItems.push({
                         name: n,
                         qty: parseFloat(row.querySelector('.itemQty').value) || 0,
-                        unit: row.querySelector('.itemUnit').value || 'KG',
+                        unit: row.querySelector('.itemUnit').value || '',
                         rate: parseFloat(row.querySelector('.itemRate').value) || 0,
                         amount: parseFloat(row.querySelector('.itemAmount').value) || 0
                     });
@@ -1484,7 +1861,7 @@
             if(item.items && item.items.length > 0) {
                 item.items.forEach(it => { addWorkItemRow(it.name, it.qty, it.unit, it.rate, it.amount); });
             } else {
-                addWorkItemRow(item.item, item.qty, 'KG', item.rate, (item.qty||0)*(item.rate||0));
+                addWorkItemRow(item.item, item.qty, '', item.rate, (item.qty||0)*(item.rate||0));
             }
 
             document.getElementById('kLabour').value = item.labour || '';
@@ -1515,7 +1892,7 @@
         }
 
         function deleteWorkEntry(id) {
-            if(confirm("Kya aap sach me is work entry ko delete karna chahte hain?")) {
+            if(confirm("Kya aap sach me is entry ko delete karna chahte hain?")) {
                 db.ref('shopKhata/' + id).remove();
             }
         }
@@ -1539,170 +1916,6 @@
             
             document.getElementById('dynamicPaymentsContainer').innerHTML = '';
             document.getElementById('kNote').value = '';
-        }
-
-        /* ==================== STAFF MANAGEMENT LOGIC ==================== */
-        function loadStaffUI() {
-            const container = document.getElementById('staffCardsContainer');
-            if(!container) return;
-            container.innerHTML = '';
-            
-            if(cloudStaffData.length === 0) {
-                container.innerHTML = `<p style="color:#94a3b8; padding: 20px 0;">Abhi koi Staff add nahi kiya hai.</p>`;
-                return;
-            }
-
-            cloudStaffData.forEach(s => {
-                let initial = (s.name || 'S').charAt(0).toUpperCase();
-                let salary = parseFloat(s.totalSalary) || 0;
-                let paid = parseFloat(s.totalPaid) || 0;
-                let balance = salary - paid;
-                
-                container.innerHTML += `
-                    <div class="person-card staff">
-                        <div>
-                            <div class="person-card-top">
-                                <div class="avatar-circle">${escapeHTML(initial)}</div>
-                                <div class="person-name">
-                                    <h3>${escapeHTML(s.name)}</h3>
-                                    <p>📞 ${escapeHTML(s.phone || 'N/A')} &nbsp;|&nbsp; <span style="text-transform:uppercase; font-size:0.75rem; color:#cbd5e1;">${escapeHTML(s.role || 'Staff')}</span></p>
-                                </div>
-                            </div>
-                            <div class="stats-box">
-                                <div class="stat-item outstanding"><h4>Balance Dena</h4><p>₹${balance.toFixed(2)}</p></div>
-                                <div class="stat-item"><h4>Total Paid</h4><p>₹${paid.toFixed(2)}</p></div>
-                            </div>
-                        </div>
-                        <div class="person-actions">
-                            <button onclick="editStaff('${s.id}')" class="action-icon-btn" style="background:#f59e0b; color:black; grid-column: span 2;">✏️ Edit Staff</button>
-                            <button onclick="deleteStaff('${s.id}')" class="action-icon-btn" style="background:#dc2626;">🗑️</button>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function openStaffModal() {
-            document.getElementById('staffId').value = '';
-            document.getElementById('staffName').value = '';
-            document.getElementById('staffPhone').value = '';
-            document.getElementById('staffRole').value = '';
-            document.getElementById('staffTotalSalary').value = '';
-            document.getElementById('staffTotalPaid').value = '';
-            document.getElementById('staffModal').style.display = 'flex';
-        }
-
-        function closeStaffModal() {
-            document.getElementById('staffModal').style.display = 'none';
-        }
-
-        function saveStaffEntry() {
-            const name = document.getElementById('staffName').value.trim();
-            if(!name) { alert("Staff ka naam likhna zaroori hai!"); return; }
-            
-            const id = document.getElementById('staffId').value;
-            const entry = {
-                name: name,
-                phone: document.getElementById('staffPhone').value,
-                role: document.getElementById('staffRole').value,
-                totalSalary: parseFloat(document.getElementById('staffTotalSalary').value) || 0,
-                totalPaid: parseFloat(document.getElementById('staffTotalPaid').value) || 0
-            };
-
-            if(id) {
-                db.ref('shopStaff/' + id).update(entry).then(() => closeStaffModal());
-            } else {
-                db.ref('shopStaff').push(entry).then(() => closeStaffModal());
-            }
-        }
-
-        function editStaff(id) {
-            const s = cloudStaffData.find(x => x.id === id);
-            if(!s) return;
-            document.getElementById('staffId').value = s.id;
-            document.getElementById('staffName').value = s.name || '';
-            document.getElementById('staffPhone').value = s.phone || '';
-            document.getElementById('staffRole').value = s.role || '';
-            document.getElementById('staffTotalSalary').value = s.totalSalary || '';
-            document.getElementById('staffTotalPaid').value = s.totalPaid || '';
-            document.getElementById('staffModal').style.display = 'flex';
-        }
-
-        function deleteStaff(id) {
-            if(confirm("Kya sach me is staff ki entry hatani hai?")) {
-                db.ref('shopStaff/' + id).remove();
-            }
-        }
-
-        /* ==================== INVENTORY LOGIC ==================== */
-        function loadInventoryUI() {
-            const tbody = document.getElementById('inventoryTableBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(cloudInventoryData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Abhi koi stock add nahi kiya.</td></tr>`;
-                return;
-            }
-
-            cloudInventoryData.forEach(item => {
-                let u = item.unit ? ` ${escapeHTML(item.unit)}` : '';
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="font-weight:bold; color:#fff;">${escapeHTML(item.itemName)}</td>
-                        <td style="color:#4ade80; font-weight:bold;">${item.qty}${u}</td>
-                        <td>
-                            <button onclick="editInventory('${item.id}')" style="background:#3b82f6; width:auto; padding:6px 12px; font-size:0.8rem; margin:0 5px 0 0;">✏️ Edit</button>
-                            <button onclick="deleteInventory('${item.id}')" style="background:#dc2626; width:auto; padding:6px 12px; font-size:0.8rem; margin:0;">🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function openInventoryModal() {
-            document.getElementById('invId').value = '';
-            document.getElementById('invName').value = '';
-            document.getElementById('invQty').value = '';
-            document.getElementById('invUnit').value = '';
-            document.getElementById('inventoryModal').style.display = 'flex';
-        }
-
-        function closeInventoryModal() {
-            document.getElementById('inventoryModal').style.display = 'none';
-        }
-
-        function saveInventoryEntry() {
-            const name = document.getElementById('invName').value.trim();
-            if(!name) { alert("Samaan ka naam zaroori hai!"); return; }
-            
-            const id = document.getElementById('invId').value;
-            const entry = {
-                itemName: name,
-                qty: parseFloat(document.getElementById('invQty').value) || 0,
-                unit: document.getElementById('invUnit').value
-            };
-
-            if(id) {
-                db.ref('shopInventory/' + id).update(entry).then(() => closeInventoryModal());
-            } else {
-                db.ref('shopInventory').push(entry).then(() => closeInventoryModal());
-            }
-        }
-
-        function editInventory(id) {
-            const item = cloudInventoryData.find(x => x.id === id);
-            if(!item) return;
-            document.getElementById('invId').value = item.id;
-            document.getElementById('invName').value = item.itemName || '';
-            document.getElementById('invQty').value = item.qty || '';
-            document.getElementById('invUnit').value = item.unit || '';
-            document.getElementById('inventoryModal').style.display = 'flex';
-        }
-
-        function deleteInventory(id) {
-            if(confirm("Stock se ye item hatana chahte ho?")) {
-                db.ref('shopInventory/' + id).remove();
-            }
         }
 
         function loadLogsUI() {
